@@ -9,7 +9,8 @@ public class Dist {
 	public ArrayList<Double> distances = new ArrayList<Double>();
 	
 	Dist(final ArrayList<Double> _distances) {
-		this.distances.addAll(distances);
+		this.distances.clear();
+		this.distances.addAll(_distances);
 	}
 	
 	Dist(final Nucleotide lhs, final Nucleotide rhs) {

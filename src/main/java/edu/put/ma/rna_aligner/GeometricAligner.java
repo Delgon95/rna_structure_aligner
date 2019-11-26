@@ -34,7 +34,6 @@ public class GeometricAligner {
 	
 	public AlignerOutput calculate() {
 		startTime = System.currentTimeMillis();
-		
 		// Precompute phase.
 		// Calculate Distances: Computational: n^2 + m^2 | Memory n^2 + m^2
 		Dist[][] referenceDistances = CalulateDistances(referenceStructure);
@@ -50,7 +49,6 @@ public class GeometricAligner {
 		}
 		Collections.shuffle(referencePairs);
 		
-		
 		ArrayList<ArrayList<NData>> validPairs = new ArrayList<ArrayList<NData>>();
 		for (int i = 0; i < referencePairs.size(); i++) {
 			validPairs.add(new ArrayList<NData>());
@@ -64,13 +62,13 @@ public class GeometricAligner {
 			}
 			// Changes validPairs structure to contain n-th batch.
 			CalculatePairCoresBatch(validPairs, referencePairs, referenceDistances,  targetDistances, batch);
-		
+
 			// Get max valid pair candidates for validPairs. 
 			int maxValidCandidates = 0;
 			for (final ArrayList<NData> valid : validPairs) {
 				maxValidCandidates = Math.max(maxValidCandidates, valid.size());
 			}
-			
+
 			// Result stored in the global variable.
 			for (int tripleBatch = 1; tripleBatch <= 2; tripleBatch++) {
 				FindTripleCoresAndCalculate(
@@ -111,10 +109,8 @@ public class GeometricAligner {
 				}
 			}
 		}
-		
 		final SVDSuperimposer superimposer = Calculations.FitForRMSD(Nucleotide.NucleotidesToTable(nucleotidesReference),
 																	 Nucleotide.NucleotidesToTable(nucleotidesTarget));
-		
 		return new AlignerOutput(sortedReference.size(), sortedReference, sortedTarget, superimposer);
 	}
 	
@@ -134,8 +130,8 @@ public class GeometricAligner {
 			final Dist[][] referenceDistances,
 			final Dist[][] targetDistances,
 			int batch) {
-		double minimumRmsd = (Double.valueOf((batch - 1)) / Double.valueOf(config.dualCoreBatches)) * config.rmsdLimit;
-		double maximumRmsd = (Double.valueOf(batch) / Double.valueOf(config.dualCoreBatches)) * config.rmsdLimit;
+		final double minimumRmsd = (Double.valueOf((batch - 1)) / Double.valueOf(config.dualCoreBatches)) * config.rmsdLimit;
+		final double maximumRmsd = (Double.valueOf(batch) / Double.valueOf(config.dualCoreBatches)) * config.rmsdLimit;
 				
 		ForkJoinPool threadPool = null;
 		
@@ -169,22 +165,24 @@ public class GeometricAligner {
 			}
 		}
 	}
-	
+		
 	private ArrayList<NData> CalculatePairCandidates(final Dist referenceDistance,
 			final Atom[] referenceAtoms,
 			final Dist[][] targetDistances,
-			double minimumRmsd,
-			double maximumRmsd) {
+			final double minimumRmsd,
+			final double maximumRmsd) {
 		ArrayList<NData> pairCandidates = new ArrayList<NData>();
+		
+		final double similarityMax = Math.pow(maximumRmsd * 2, 2) * referenceStructure.get(0).representatives.size();
 		
 		Atom[] targetAtoms = new Atom[targetStructure.get(0).representatives.size() * 2];
 		for (int i = 0; i < targetDistances.length; i++) {
 			for (int j = 0; j < targetDistances.length; j++) {
 				if (i != j) {
 					double similarity = Dist.Similarity(referenceDistance, targetDistances[i][j]);
-					
-					// Here rmsdLimit == similarity metric. Check if within limit.
-					if (similarity <= config.rmsdLimit) {
+					// Here rmsdLimit != similarity metric as some calculations were omitted from calculations for speed
+					// and moved to similarityMax variable.
+					if (similarity <= similarityMax) {
 						NucleotidesToAtoms(targetAtoms, i, j, targetStructure);
 						// Calculate real RMSD with best rotation and shift.
 						// Does not change targetAtoms.
@@ -211,7 +209,7 @@ public class GeometricAligner {
 		final Nucleotide nucl2 = nucleotides.get(second);
 		for (int i = 0; i < nucl2.representatives.size(); i++, index++) {
 			atoms[index] = nucl2.representatives.get(i);
-		}	
+		}
 	}
 	
 	// Does not create new Atoms structures, just references to the original structure.
@@ -227,7 +225,7 @@ public class GeometricAligner {
 	private ArrayList<NData> FindTriplesCores(
 			Atom[] referenceAtoms,
 			Atom[] targetAtoms,
-			final NData candidate,
+			NData candidate,
 			final NData ndata,
 			final ArrayList<ArrayList<NData>> validPairs,
 			final int index,
@@ -280,6 +278,12 @@ public class GeometricAligner {
 			return null;
 		}
 		
+		// Used all candidates in the first batch.
+		if (batch == 1 && limit == 0) {
+			// Use rmsd variable as substitute for a flag that this candidate should not be calculated again.
+			candidate.rmsd = -1.0;
+		}
+		
 		return triplesCandidatesBatch;
 	}
 	
@@ -312,6 +316,11 @@ public class GeometricAligner {
 					
 					NData candidate = candidates.get(candidateIndex);
 					
+					// All possible cores were calculated during first batch.
+					if (candidate.rmsd < 0.0) {
+						return;
+					}
+					
 					Atom[] referenceAtoms = new Atom[referenceStructure.get(0).representatives.size() * 3];
 					Atom[] targetAtoms = new Atom[targetStructure.get(0).representatives.size() * 3];
 					
@@ -339,8 +348,8 @@ public class GeometricAligner {
 						NucleotidesToAtoms(referenceAtoms, tripleCore.index1, referenceStructure);
 						NucleotidesToAtoms(targetAtoms, tripleCore.index2, targetStructure);
 						FindFromTriple(referenceAtoms, targetAtoms, ndata, candidate,
-										tripleCore.index1, tripleCore.index2,
-										tripleCore.superimposer);
+									   tripleCore.index1, tripleCore.index2,
+						    		   tripleCore.superimposer);
 					}
 				})
 				).get();

@@ -7,7 +7,7 @@ public class AlignerConfig {
 	// Number of threads used for calculations. 
 	public int threads = 8;
 	// Break calculations after (300) seconds and return AlignerOutput.
-	public double returnTime = 120;
+	public double returnTime = 300;
 	
 	// Geometric
 	// How many batches of 2 nucleotide cores should be made;

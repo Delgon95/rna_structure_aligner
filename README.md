@@ -15,7 +15,7 @@ Both methods require coarse-grained structures as an input for alignment!
 Required RMSD and number of threads can be specified in AlignerConfig structure which also contains method-specific configurations.
 
 - genetic - GeneticAligner, uses genetic metaheuristic, multithreaded. 
-- geometric - GeometricAligner. **Not yet added to the repository**
+- geometric - GeometricAligner. Strong mathematical roots with greedy expansion of the kernel.
 
 ### Output 
 Both methods output AlignerOutput structure.

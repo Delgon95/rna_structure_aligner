@@ -22,7 +22,8 @@ public class App  {
         // Aligner function input: config, coarse-grained RNA structures.
 		AlignerOutput output = null;
         if (args[0].equals("geometric")) {
-
+        	GeometricAligner aligner = new GeometricAligner(config, referenceStructure, targetStructure);
+        	output = aligner.calculate();
         } else if (args[0].equals("genetic")) {
         	GeneticAligner aligner = new GeneticAligner(config, referenceStructure, targetStructure);
             output = aligner.calculate();

@@ -9,6 +9,7 @@ public class Nucleotide {
 	
 	public Nucleotide() {
 		super();
+		representatives = new ArrayList<Atom>();
 	}
 	
 	public Nucleotide(final ArrayList<Atom> _representatives) {

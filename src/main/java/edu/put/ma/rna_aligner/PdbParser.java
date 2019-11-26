@@ -19,6 +19,7 @@ public class PdbParser {
 	private static final ArrayList<String> A_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"));
 	private static final ArrayList<String> G_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"));
 	
+	@SuppressWarnings("resource")
 	public ArrayList<Nucleotide> ParsePdbToCoarseGrained(final String pdb_filename) {
 		ArrayList<Nucleotide> result = new ArrayList<Nucleotide>();
 		

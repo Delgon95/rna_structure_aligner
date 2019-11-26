@@ -1,7 +1,6 @@
 package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
@@ -152,8 +151,6 @@ public class GeneticAligner {
 
 			}
 		});
-		
-		
 		
 		ArrayList<Integer> referenceIndexes = new ArrayList<Integer>();
 		ArrayList<Integer> targetMapping = new ArrayList<Integer>();

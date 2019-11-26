@@ -2,7 +2,7 @@ package edu.put.ma.rna_aligner;
 
 import java.util.Comparator;
 
-public class SpecimenComparator implements Comparator {
+public class SpecimenComparator implements Comparator<Object> {
 	private double rmsd_limit = 3.5;
 	
 	SpecimenComparator(double _rmsd_limit) {

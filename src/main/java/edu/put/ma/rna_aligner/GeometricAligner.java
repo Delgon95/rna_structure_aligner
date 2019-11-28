@@ -458,13 +458,11 @@ public class GeometricAligner {
       semaphore.acquire();
       // New alignment clearly better.
       if (bestChainReference.size() < chainReference.size()) {
-        System.out.println(String.format("Improved Solution (%d ms):\t%d %f", System.currentTimeMillis() - startTime, chainReference.size(), currentRmsd));
         bestRmsd = currentRmsd;
         bestChainReference = chainReference;
         bestChainTarget = chainTarget;
       } else if (bestChainReference.size() == chainReference.size()) { // Possible RMSD improvement.
         if (bestRmsd > currentRmsd) {
-          System.out.println(String.format("Improved RMSD (%d ms):\t%f -> %f", System.currentTimeMillis() - startTime, bestRmsd, currentRmsd));
           bestRmsd = currentRmsd;
           bestChainReference = chainReference;
           bestChainTarget = chainTarget;

@@ -31,8 +31,16 @@ public class Dist {
   }
 
   // Calculate mini RMSD only on distances of 3 nucleotides.
-  public static double Similarity(final Dist lhs, final Dist rhs, final Dist lhs2, final Dist rhs2, final Dist lhs3, final Dist rhs3) {
-    // TODO
-    return 0.0;
+  public static double Similarity(final Dist lhs1, final Dist rhs1, final Dist lhs2, final Dist rhs2, final Dist lhs3, final Dist rhs3) {
+    double similarity = 0;
+    for (int i = 0; i < lhs1.distances.size(); i++) {
+      similarity += Math.pow(Math.abs(lhs1.distances.get(i) - rhs1.distances.get(i)) -
+          Math.abs(lhs2.distances.get(i) - rhs2.distances.get(i)), 2);
+      similarity += Math.pow(Math.abs(lhs2.distances.get(i) - rhs2.distances.get(i)) -
+          Math.abs(lhs3.distances.get(i) - rhs3.distances.get(i)), 2);
+      similarity += Math.pow(Math.abs(lhs3.distances.get(i) - rhs3.distances.get(i)) -
+          Math.abs(lhs1.distances.get(i) - rhs1.distances.get(i)), 2);
+    }
+    return similarity;
   }
 }

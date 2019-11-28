@@ -68,6 +68,8 @@ public class GeometricAligner {
       // Result stored in the global variable.
       for (int tripleBatch = 1; tripleBatch <= 2; tripleBatch++) {
         FindTripleCoresAndCalculate(
+            referenceDistances,
+            targetDistances,
             referencePairs,
             validPairs,
             maxValidCandidates,
@@ -220,38 +222,43 @@ public class GeometricAligner {
   }
 
   private ArrayList<NData> FindTriplesCores(
+      final Dist[][] referenceDistances,
+      final Dist[][] targetDistances,
       ArrayList<Coordinates> referenceAtoms,
       ArrayList<Coordinates> targetAtoms,
       NData candidate,
       final NData ndata,
-      final ArrayList<ArrayList<NData>> validPairs,
       final int index,
       final int batch) {
     ArrayList<NData> triplesCandidates = new ArrayList<NData>();
     Superimposer superimposer = null;
+
+    final double similarityMax = Math.pow(config.rmsdLimit * 3, 2) * referenceStructure.get(0).representatives.size();
 
     for (int i = ndata.index2 + 1; i < referenceStructure.size(); i++) {
       // Fill last (third) nucleotide worth of atoms.
       NucleotidesToAtoms(referenceAtoms, i, referenceStructure);
       for (int j = 0; j < targetStructure.size(); j++) {
         if (j != candidate.index1 && j != candidate.index2) {
-          // TODO
-          // Create efficient 3 nucleotide similarity calculation.
-          // double similarity = Dist.Similarity();
-          // if (similarity < X) {
-
           // Fill last (third) nucleotide worth of atoms.
-          NucleotidesToAtoms(targetAtoms, j, targetStructure);
-          superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
-          final ArrayList<Coordinates> fitTargetAtoms = Calculations.MoveAtomsForRMSD(
-              targetAtoms,
-              superimposer);
-          double rmsd = Calculations.CalculateRMSD(referenceAtoms, fitTargetAtoms);
+          double similarity = Dist.Similarity(referenceDistances[ndata.index1][ndata.index2],
+              targetDistances[candidate.index1][candidate.index2],
+              referenceDistances[ndata.index1][i],
+              targetDistances[candidate.index1][j],
+              referenceDistances[ndata.index2][i],
+              targetDistances[candidate.index2][j]);
+          if (similarity < similarityMax) {
+            NucleotidesToAtoms(targetAtoms, j, targetStructure);
+            superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
+            final ArrayList<Coordinates> fitTargetAtoms = Calculations.MoveAtomsForRMSD(
+                targetAtoms,
+                superimposer);
+            double rmsd = Calculations.CalculateRMSD(referenceAtoms, fitTargetAtoms);
 
-          if (rmsd < config.rmsdLimit) {
-            triplesCandidates.add(new NData(i, j, rmsd, superimposer));
+            if (rmsd < config.rmsdLimit) {
+              triplesCandidates.add(new NData(i, j, rmsd, superimposer));
+            }
           }
-          // } // Similarity if
         }
       }
     }
@@ -285,6 +292,8 @@ public class GeometricAligner {
   }
 
   private void FindTripleCoresAndCalculate(
+      final Dist[][] referenceDistances,
+      final Dist[][] targetDistances,
       final ArrayList<NData> referencePairs,
       final ArrayList<ArrayList<NData>> validPairs,
       final int maxValidCandidates,
@@ -327,11 +336,12 @@ public class GeometricAligner {
 
           // Find tripleCores already batch trimmed.
           final ArrayList<NData> triplesCoresCandidates = FindTriplesCores(
+              referenceDistances,
+              targetDistances,
               referenceAtoms,
               targetAtoms,
               candidate,
               ndata, 
-              validPairs, 
               finalIndex, 
               batch);
 

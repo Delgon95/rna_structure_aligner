@@ -1,101 +1,76 @@
 package edu.put.ma.rna_aligner;
 
-import org.biojava.nbio.structure.Atom;
-import org.biojava.nbio.structure.AtomImpl;
-import org.biojava.nbio.structure.SVDSuperimposer;
-import org.biojava.nbio.structure.StructureException;
+import java.util.ArrayList;
+
 import org.biojava.nbio.structure.jama.Matrix;
 
 public class Calculations {
 	
-	public static Atom[] CopyAtomTable(final Atom[] atoms) {
-		Atom[] copy = new Atom[atoms.length];
-		for (int i = 0; i < atoms.length; ++i) {
-			Atom a = new AtomImpl();
-			a.setX(atoms[i].getX());
-			a.setY(atoms[i].getY());
-			a.setZ(atoms[i].getZ());
-			copy[i] = a;
+	public static ArrayList<Coordinates> CopyAtoms(final ArrayList<Coordinates> atoms) {
+		ArrayList<Coordinates> copy = new ArrayList<Coordinates>(atoms.size());
+		for (int i = 0; i < atoms.size(); ++i) {
+			copy.add(atoms.get(i).clone());
 		}
 		return copy;
 	}
 	
-	public static SVDSuperimposer FitForRMSD(final Atom[] first_atoms, final Atom[] second_atoms) {
-    	SVDSuperimposer superimposer = null;
-    	try {
-    		superimposer = new SVDSuperimposer(first_atoms, second_atoms);
-    	} catch (StructureException e) {
-    		//
-    	}
-    	return superimposer;
+	public static Superimposer FitForRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms) {
+    	return new Superimposer(first_atoms, second_atoms);
 	}
 	
-	public static void rotate(Atom atom, Matrix m){
-		double x = atom.getX();
-		double y = atom.getY() ;
-		double z = atom.getZ();
+	public static void rotate(Coordinates atom, final Matrix m) {
+		double x = atom.x;
+		double y = atom.y;
+		double z = atom.z;
 		final double[][] mt = m.getArray();
-		atom.setX(x * mt[0][0] + y * mt[1][0] + z * mt[2][0]);
-		atom.setY(x * mt[0][1] + y * mt[1][1] + z * mt[2][1]);
-		atom.setZ(x * mt[0][2] + y * mt[1][2] + z * mt[2][2]);
+		atom.x = (x * mt[0][0] + y * mt[1][0] + z * mt[2][0]);
+		atom.y = (x * mt[0][1] + y * mt[1][1] + z * mt[2][1]);
+		atom.z = (x * mt[0][2] + y * mt[1][2] + z * mt[2][2]);
 	}
 	
-	public static void shift(Atom a, Atom b){
-		a.setX(a.getX() + b.getX());
-		a.setY(a.getY() + b.getY());
-		a.setZ(a.getZ() + b.getZ());
+	public static void shift(Coordinates atom, final Coordinates shift) {
+		atom.x += shift.x;
+		atom.y += shift.y;
+		atom.z += shift.z;
 	}
 	
-	public static void MoveAtomsInplace(Atom[] first, Atom[] second) {
-		SVDSuperimposer superimposer = FitForRMSD(first, second);
-        for (Atom atom : second) {
+	public void MoveAtomsInplace(final ArrayList<Coordinates> reference, ArrayList<Coordinates> target) {
+		Superimposer superimposer = FitForRMSD(reference, target);
+        for (Coordinates atom : target) {
         	rotate(atom, superimposer.getRotation());
             shift(atom, superimposer.getTranslation());
         }
 	}
 	
-	public static Atom[] MoveAtomsForRMSD(final Atom[] atoms, final SVDSuperimposer superimposer) {
-    	Atom[] atoms_moved_copy = CopyAtomTable(atoms);
+	public static ArrayList<Coordinates> MoveAtomsForRMSD(final ArrayList<Coordinates> atoms, final Superimposer superimposer) {
+		ArrayList<Coordinates> atoms_moved_copy = CopyAtoms(atoms);
 
-        for (Atom atom : atoms_moved_copy) {
+        for (Coordinates atom : atoms_moved_copy) {
         	rotate(atom, superimposer.getRotation());
             shift(atom, superimposer.getTranslation());
         }
         return atoms_moved_copy;
 	}
 	
-    public static double FitAndCalculateRMSD(final Atom[] first_atoms, final Atom[] second_atoms) {
-    	if (first_atoms.length != second_atoms.length) {
-    		System.out.println(String.format("WRONG LENGTH: %d %d", first_atoms.length, second_atoms.length));
+    public static double FitAndCalculateRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms) {
+    	if (first_atoms.size() != second_atoms.size()) {
+    		System.out.println(String.format("WRONG LENGTH: %d %d", first_atoms.size(), second_atoms.size()));
     		return -1;
     	}
 
-    	SVDSuperimposer superimposer = FitForRMSD(first_atoms, second_atoms);
+    	Superimposer superimposer = FitForRMSD(first_atoms, second_atoms);
 
-    	final Atom[] fit_second_atoms = MoveAtomsForRMSD(second_atoms, superimposer);
+    	final ArrayList<Coordinates> fit_second_atoms = MoveAtomsForRMSD(second_atoms, superimposer);
 
 		return CalculateRMSD(first_atoms, fit_second_atoms);
     }
     
-    public static double CalculateRMSD(final Atom[] first_atoms, final Atom[] second_atoms) {
-    	try {
-			return SVDSuperimposer.getRMS(first_atoms, second_atoms);
-		} catch (StructureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	return 0;
+    public static double CalculateRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms) {
+		return Superimposer.getRMS(first_atoms, second_atoms);
     }
     
-    public static double CalculateRMSD(final Atom[] first_atoms, final Atom[] second_atoms, final SVDSuperimposer superimposer) {
-    	final Atom[] fit_second_atoms = MoveAtomsForRMSD(second_atoms, superimposer);
-
-    	try {
-			return SVDSuperimposer.getRMS(first_atoms, fit_second_atoms);
-		} catch (StructureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	return 0;
+    public static double CalculateRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms, final Superimposer superimposer) {
+    	final ArrayList<Coordinates> fit_second_atoms = MoveAtomsForRMSD(second_atoms, superimposer);
+		return Superimposer.getRMS(first_atoms, fit_second_atoms);
     }
 }

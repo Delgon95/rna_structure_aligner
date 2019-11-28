@@ -162,8 +162,8 @@ public class GeneticAligner {
 		}
 		
 		return new AlignerOutput(bestSpecimen.getUsedNucleotidesNumber(), referenceIndexes, targetMapping,
-				Calculations.FitForRMSD(Nucleotide.NucleotidesToMappedTable(bestSpecimen.primaryNucleotides, bestSpecimen.primaryNucleotidesUsed, true),
-						Nucleotide.NucleotidesToMappedTable(bestSpecimen.secondaryNucleotides, bestSpecimen.secondaryNucleotidesMap, false)));
+				Calculations.FitForRMSD(Nucleotide.NucleotidesToListMapped(bestSpecimen.primaryNucleotides, bestSpecimen.primaryNucleotidesUsed, true),
+						                Nucleotide.NucleotidesToListMapped(bestSpecimen.secondaryNucleotides, bestSpecimen.secondaryNucleotidesMap, false)));
 	}
 
 }

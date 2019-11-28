@@ -2,9 +2,6 @@ package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
 
-import org.biojava.nbio.structure.Atom;
-import org.biojava.nbio.structure.Calc;
-
 public class Dist {
 	public ArrayList<Double> distances = new ArrayList<Double>();
 	
@@ -20,8 +17,8 @@ public class Dist {
 		}
 	}
 	
-	private double CalculateDistance(final Atom lhs, final Atom rhs) {
-		return Calc.getDistance(lhs, rhs);
+	private double CalculateDistance(final Coordinates lhs, final Coordinates rhs) {
+		return Coordinates.getDistance(lhs, rhs);
 	}
 	
 	// Calculate mini best case scenario RMSD only on distances.

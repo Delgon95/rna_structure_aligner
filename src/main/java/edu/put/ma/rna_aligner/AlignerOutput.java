@@ -2,8 +2,6 @@ package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
 
-import org.biojava.nbio.structure.SVDSuperimposer;
-
 public class AlignerOutput {
 	// How many nucleotides were used for resulting alignment.
 	public final int aligned;
@@ -12,12 +10,12 @@ public class AlignerOutput {
 	// To what nucleotide index was it mapped in target structure.
 	public final ArrayList<Integer> targetMapping;
 	// Superimposer that contains shift and rotation matrices.
-	public final SVDSuperimposer superimposer;
+	public final Superimposer superimposer;
 	
 	AlignerOutput(int _aligned,
 			final ArrayList<Integer> _referenceIndexes,
 			final ArrayList<Integer> _targetMapping,
-			final SVDSuperimposer _superimposer) {
+			final Superimposer _superimposer) {
 		super();
 		aligned = _aligned;
 		referenceIndexes = _referenceIndexes;

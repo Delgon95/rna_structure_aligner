@@ -121,8 +121,8 @@ public class Specimen {
 				if (availableNucleotides.size() == primaryNucleotides.size()) {
 					return Double.POSITIVE_INFINITY - 1;
 				}
-				rmsd = Calculations.FitAndCalculateRMSD(Nucleotide.NucleotidesToMappedTable(primaryNucleotides, primaryNucleotidesUsed, true),
-						Nucleotide.NucleotidesToMappedTable(secondaryNucleotides, secondaryNucleotidesMap, false));
+				rmsd = Calculations.FitAndCalculateRMSD(Nucleotide.NucleotidesToListMapped(primaryNucleotides, primaryNucleotidesUsed, true),
+						Nucleotide.NucleotidesToListMapped(secondaryNucleotides, secondaryNucleotidesMap, false));
 			}
 			return rmsd;
 		}

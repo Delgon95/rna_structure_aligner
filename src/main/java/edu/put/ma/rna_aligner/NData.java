@@ -1,12 +1,10 @@
 package edu.put.ma.rna_aligner;
 
-import org.biojava.nbio.structure.SVDSuperimposer;
-
 public class NData {
 	public int index1;
 	public int index2;
 	public double rmsd;
-	public SVDSuperimposer superimposer;
+	public Superimposer superimposer;
 	
 	public NData(int _index1, int _index2) {
 		this.index1 = _index1;
@@ -19,7 +17,7 @@ public class NData {
 		this.rmsd = _rmsd;
 	}
 	
-	public NData(int _index1, int _index2, double _rmsd, SVDSuperimposer _superimposer) {
+	public NData(int _index1, int _index2, double _rmsd, Superimposer _superimposer) {
 		this.index1 = _index1;
 		this.index2 = _index2;
 		this.rmsd = _rmsd;

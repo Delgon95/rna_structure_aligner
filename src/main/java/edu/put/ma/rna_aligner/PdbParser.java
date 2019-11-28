@@ -7,10 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import edu.put.ma.rna_aligner.Nucleotide;
-import org.biojava.nbio.structure.Atom;
-import org.biojava.nbio.structure.AtomImpl;
-
 public class PdbParser {
 	private static final ArrayList<String> rest_atoms = new ArrayList<String>(Arrays.asList("C5'"));
 	private static final ArrayList<String> ryboze_atoms = new ArrayList<String>(Arrays.asList("C2'", "C1'", "O4'"));
@@ -32,11 +28,11 @@ public class PdbParser {
 			double bsgcCounter = 0;
 			double rbgcCounter = 0;
 			double restCounter = 0;
-			Atom bsgcAtom = new AtomImpl();
-			Atom rbgcAtom = new AtomImpl();
-			Atom restAtom = new AtomImpl();
-			Atom atom = new AtomImpl();
-			ArrayList<Atom> atoms = new ArrayList<Atom>();
+			Coordinates bsgcAtom = new Coordinates();
+			Coordinates rbgcAtom = new Coordinates();
+			Coordinates restAtom = new Coordinates();
+			Coordinates atom = new Coordinates();
+			ArrayList<Coordinates> atoms = new ArrayList<Coordinates>();
 			
 			while ((line = bufferedReader.readLine()) != null) {
 				double x, y, z;
@@ -51,9 +47,9 @@ public class PdbParser {
 					z = Double.parseDouble(line.substring(47, 54).trim());
 					residue = Integer.parseInt(line.substring(23, 26).trim());
 				} else {
-					atom.setX(Double.parseDouble(split_line[6]));
-					atom.setY(Double.parseDouble(split_line[7]));
-					atom.setZ(Double.parseDouble(split_line[8]));
+					atom.x = Double.parseDouble(split_line[6]);
+					atom.y = Double.parseDouble(split_line[7]);
+					atom.z = Double.parseDouble(split_line[8]);
 					atoms.add(atom);
 					x = Double.parseDouble(split_line[6]);
 					y = Double.parseDouble(split_line[7]);
@@ -61,7 +57,7 @@ public class PdbParser {
 					residue = Integer.parseInt(split_line[5]);
 				}
 
-				atom = new AtomImpl();
+				atom = new Coordinates();
 				/*BSGC, RBGC, C5'
 				 * Field: 0         1  2     3 4   5     6       7       8        9     10             11
 				 * Line:  ATOM      1  P     U A   1     -12.818 -47.368 -15.305  1.00  0.00           P
@@ -77,41 +73,41 @@ public class PdbParser {
 				 */
 				
 				if (current_residue != residue) {
-					bsgcAtom.setX(bsgcAtom.getX() / bsgcCounter);
-					bsgcAtom.setY(bsgcAtom.getY() / bsgcCounter);
-					bsgcAtom.setZ(bsgcAtom.getZ() / bsgcCounter);
-					rbgcAtom.setX(rbgcAtom.getX() / rbgcCounter);
-					rbgcAtom.setY(rbgcAtom.getY() / rbgcCounter);
-					rbgcAtom.setZ(rbgcAtom.getZ() / rbgcCounter);
-					restAtom.setX(restAtom.getX() / restCounter);
-					restAtom.setY(restAtom.getY() / restCounter);
-					restAtom.setZ(restAtom.getZ() / restCounter);
-					ArrayList<Atom> grained = new ArrayList<Atom>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
+					bsgcAtom.x = bsgcAtom.x / bsgcCounter;
+					bsgcAtom.y = bsgcAtom.y / bsgcCounter;
+					bsgcAtom.z = bsgcAtom.z / bsgcCounter;
+					rbgcAtom.x = rbgcAtom.x / rbgcCounter;
+					rbgcAtom.y = rbgcAtom.y / rbgcCounter;
+					rbgcAtom.z = rbgcAtom.z / rbgcCounter;
+					restAtom.x = restAtom.x / restCounter;
+					restAtom.y = restAtom.y / restCounter;
+					restAtom.z = restAtom.z / restCounter;
+					ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 					result.add(new Nucleotide(grained));
 					// Reset
 					current_residue = residue;
-					bsgcAtom = new AtomImpl();
-					rbgcAtom = new AtomImpl();
-					restAtom = new AtomImpl();
-					atoms = new ArrayList<Atom>();
+					bsgcAtom = new Coordinates();
+					rbgcAtom = new Coordinates();
+					restAtom = new Coordinates();
+					atoms = new ArrayList<Coordinates>();
 					bsgcCounter = 0;
 					rbgcCounter = 0;
 					restCounter = 0;
 				}
 				for (String name : rest_atoms) {
 					if (name.equals(split_line[2])) {
-						restAtom.setX(restAtom.getX() + x);
-						restAtom.setY(restAtom.getY() + y);
-						restAtom.setZ(restAtom.getZ() + z);
+						restAtom.x = restAtom.x + x;
+						restAtom.y = restAtom.y + y;
+						restAtom.z = restAtom.z + z;
 						restCounter++;
 						break;
 					}
 				}
 				for (String name : ryboze_atoms) {
 					if (name.equals(split_line[2])) {
-						rbgcAtom.setX(rbgcAtom.getX() + x);
-						rbgcAtom.setY(rbgcAtom.getY() + y);
-						rbgcAtom.setZ(rbgcAtom.getZ() + z);
+						rbgcAtom.x = rbgcAtom.x + x;
+						rbgcAtom.y = rbgcAtom.y + y;
+						rbgcAtom.z = rbgcAtom.z + z;
 						rbgcCounter++;
 						break;
 					}
@@ -130,9 +126,9 @@ public class PdbParser {
 
 				for (String name : base_atoms) {
 					if (name.equals(split_line[2])) {
-						bsgcAtom.setX(bsgcAtom.getX() + x);
-						bsgcAtom.setY(bsgcAtom.getY() + y);
-						bsgcAtom.setZ(bsgcAtom.getZ() + z);
+						bsgcAtom.x = bsgcAtom.x + x;
+						bsgcAtom.y = bsgcAtom.y + y;
+						bsgcAtom.z = bsgcAtom.z + z;
 						bsgcCounter++;
 						break;
 					}
@@ -140,16 +136,25 @@ public class PdbParser {
 			}
 			// Average and add last residue.
 			
-			bsgcAtom.setX(bsgcAtom.getX() / bsgcCounter);
-			bsgcAtom.setY(bsgcAtom.getX() / bsgcCounter);
-			bsgcAtom.setZ(bsgcAtom.getX() / bsgcCounter);
-			rbgcAtom.setX(rbgcAtom.getX() / rbgcCounter);
-			rbgcAtom.setY(rbgcAtom.getX() / rbgcCounter);
-			rbgcAtom.setZ(rbgcAtom.getX() / rbgcCounter);
-			restAtom.setX(restAtom.getX() / restCounter);
-			restAtom.setY(restAtom.getX() / restCounter);
-			restAtom.setZ(restAtom.getX() / restCounter);
-			ArrayList<Atom> grained = new ArrayList<Atom>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
+			bsgcAtom.x = bsgcAtom.x / bsgcCounter;
+			bsgcAtom.y = bsgcAtom.x / bsgcCounter;
+			bsgcAtom.z = bsgcAtom.x / bsgcCounter;
+			rbgcAtom.x = rbgcAtom.x / rbgcCounter;
+			rbgcAtom.y = rbgcAtom.x / rbgcCounter;
+			rbgcAtom.z = rbgcAtom.x / rbgcCounter;
+			restAtom.x = restAtom.x / restCounter;
+			restAtom.y = restAtom.x / restCounter;
+			restAtom.z = restAtom.x / restCounter;
+			/*bsgcAtom.x = bsgcAtom.x / bsgcCounter;
+			bsgcAtom.y = bsgcAtom.y / bsgcCounter;
+			bsgcAtom.z = bsgcAtom.z / bsgcCounter;
+			rbgcAtom.x = rbgcAtom.x / rbgcCounter;
+			rbgcAtom.y = rbgcAtom.y / rbgcCounter;
+			rbgcAtom.z = rbgcAtom.z / rbgcCounter;
+			restAtom.x = restAtom.x / restCounter;
+			restAtom.y = restAtom.y / restCounter;
+			restAtom.z = restAtom.z / restCounter;*/
+			ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 			result.add(new Nucleotide(grained));
 		
 		} catch (FileNotFoundException e) {

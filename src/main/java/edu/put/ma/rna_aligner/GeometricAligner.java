@@ -1,15 +1,12 @@
 package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
-
-import org.biojava.nbio.structure.Atom;
-import org.biojava.nbio.structure.Calc;
-import org.biojava.nbio.structure.SVDSuperimposer;
 
 public class GeometricAligner {
 	private final AlignerConfig config;
@@ -109,8 +106,11 @@ public class GeometricAligner {
 				}
 			}
 		}
-		final SVDSuperimposer superimposer = Calculations.FitForRMSD(Nucleotide.NucleotidesToTable(nucleotidesReference),
-																	 Nucleotide.NucleotidesToTable(nucleotidesTarget));
+		final Superimposer superimposer = Calculations.FitForRMSD(Nucleotide.NucleotidesToList(nucleotidesReference),
+															      Nucleotide.NucleotidesToList(nucleotidesTarget));
+		
+		System.out.println(System.currentTimeMillis() - startTime);
+		
 		return new AlignerOutput(sortedReference.size(), sortedReference, sortedTarget, superimposer);
 	}
 	
@@ -143,7 +143,7 @@ public class GeometricAligner {
 				if (ShouldTerminate()) {
 					return;
 				}
-				Atom[] referenceAtoms = new Atom[referenceStructure.get(0).representatives.size() * 2];
+				ArrayList<Coordinates> referenceAtoms = new ArrayList<Coordinates>(Arrays.asList(new Coordinates[targetStructure.get(0).representatives.size() * 2]));
 				NucleotidesToAtoms(referenceAtoms, ndata.index1, ndata.index2, referenceStructure);
 				// Calculate pair candidates.
 				ArrayList<NData> pairCandidates = CalculatePairCandidates(
@@ -167,7 +167,7 @@ public class GeometricAligner {
 	}
 		
 	private ArrayList<NData> CalculatePairCandidates(final Dist referenceDistance,
-			final Atom[] referenceAtoms,
+			final ArrayList<Coordinates> referenceAtoms,
 			final Dist[][] targetDistances,
 			final double minimumRmsd,
 			final double maximumRmsd) {
@@ -175,7 +175,7 @@ public class GeometricAligner {
 		
 		final double similarityMax = Math.pow(maximumRmsd * 2, 2) * referenceStructure.get(0).representatives.size();
 		
-		Atom[] targetAtoms = new Atom[targetStructure.get(0).representatives.size() * 2];
+		ArrayList<Coordinates> targetAtoms = new ArrayList<Coordinates>(Arrays.asList(new Coordinates[targetStructure.get(0).representatives.size() * 2]));
 		for (int i = 0; i < targetDistances.length; i++) {
 			for (int j = 0; j < targetDistances.length; j++) {
 				if (i != j) {
@@ -186,7 +186,7 @@ public class GeometricAligner {
 						NucleotidesToAtoms(targetAtoms, i, j, targetStructure);
 						// Calculate real RMSD with best rotation and shift.
 						// Does not change targetAtoms.
-				    	SVDSuperimposer superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
+						Superimposer superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
 						double rmsd = Calculations.CalculateRMSD(referenceAtoms, targetAtoms, superimposer);
 						
 						if (rmsd >= minimumRmsd && rmsd <= maximumRmsd) {
@@ -200,38 +200,37 @@ public class GeometricAligner {
 	}
 
 	// Does not create new Atoms structures, just references to the original structure.
-	private void NucleotidesToAtoms(Atom[] atoms, int first, int second, final ArrayList<Nucleotide> nucleotides) {
+	private void NucleotidesToAtoms(ArrayList<Coordinates> atoms, int first, int second, final ArrayList<Nucleotide> nucleotides) {
 		int index = 0;
 		final Nucleotide nucl1 = nucleotides.get(first);
 		for (int i = 0; i < nucl1.representatives.size(); i++, index++) {
-			atoms[index] = nucl1.representatives.get(i);
+			atoms.set(index, nucl1.representatives.get(i));
 		}
 		final Nucleotide nucl2 = nucleotides.get(second);
 		for (int i = 0; i < nucl2.representatives.size(); i++, index++) {
-			atoms[index] = nucl2.representatives.get(i);
+			atoms.set(index, nucl2.representatives.get(i));		
 		}
 	}
 	
 	// Does not create new Atoms structures, just references to the original structure.
-	private void NucleotidesToAtoms(Atom[] atoms, int third, final ArrayList<Nucleotide> nucleotides) {
+	private void NucleotidesToAtoms(ArrayList<Coordinates> atoms, int third, final ArrayList<Nucleotide> nucleotides) {
 		final Nucleotide nucl3 = nucleotides.get(third);
 		int index = nucl3.representatives.size() * 2;
-
 		for (int i = 0; i < nucl3.representatives.size(); i++, index++) {
-			atoms[index] = nucl3.representatives.get(i);
+			atoms.set(index, nucl3.representatives.get(i));
 		}
 	}
 	
 	private ArrayList<NData> FindTriplesCores(
-			Atom[] referenceAtoms,
-			Atom[] targetAtoms,
+			ArrayList<Coordinates> referenceAtoms,
+			ArrayList<Coordinates> targetAtoms,
 			NData candidate,
 			final NData ndata,
 			final ArrayList<ArrayList<NData>> validPairs,
 			final int index,
 			final int batch) {
 		ArrayList<NData> triplesCandidates = new ArrayList<NData>();
-		SVDSuperimposer superimposer = null;
+		Superimposer superimposer = null;
 		
 		for (int i = ndata.index2 + 1; i < referenceStructure.size(); i++) {
 			// Fill last (third) nucleotide worth of atoms.
@@ -246,7 +245,7 @@ public class GeometricAligner {
 					// Fill last (third) nucleotide worth of atoms.
 					NucleotidesToAtoms(targetAtoms, j, targetStructure);
 					superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
-					final Atom[] fitTargetAtoms = Calculations.MoveAtomsForRMSD(
+					final ArrayList<Coordinates> fitTargetAtoms = Calculations.MoveAtomsForRMSD(
 							targetAtoms,
 							superimposer);
 					double rmsd = Calculations.CalculateRMSD(referenceAtoms, fitTargetAtoms);
@@ -321,8 +320,8 @@ public class GeometricAligner {
 						return;
 					}
 					
-					Atom[] referenceAtoms = new Atom[referenceStructure.get(0).representatives.size() * 3];
-					Atom[] targetAtoms = new Atom[targetStructure.get(0).representatives.size() * 3];
+					ArrayList<Coordinates> referenceAtoms = new ArrayList<Coordinates>(Arrays.asList(new Coordinates[targetStructure.get(0).representatives.size() * 3]));
+					ArrayList<Coordinates> targetAtoms = new ArrayList<Coordinates>(Arrays.asList(new Coordinates[targetStructure.get(0).representatives.size() * 3]));
 					
 					// Filled 2 nucleotides worth of Atoms
 					NucleotidesToAtoms(referenceAtoms, ndata.index1, ndata.index2, referenceStructure);
@@ -349,7 +348,7 @@ public class GeometricAligner {
 						NucleotidesToAtoms(targetAtoms, tripleCore.index2, targetStructure);
 						FindFromTriple(referenceAtoms, targetAtoms, ndata, candidate,
 									   tripleCore.index1, tripleCore.index2,
-						    		   tripleCore.superimposer);
+						   		       tripleCore.superimposer);
 					}
 				})
 				).get();
@@ -363,9 +362,9 @@ public class GeometricAligner {
 		}
 	}
 
-	private void FindFromTriple(final Atom[] referenceAtoms, 
-			final Atom[] targetAtoms, final NData ndata, final NData candidate, int referenceIndex3,
-			int targetIndex3, final SVDSuperimposer superimposer) {
+	private void FindFromTriple(final ArrayList<Coordinates> referenceAtoms, 
+			final ArrayList<Coordinates> targetAtoms, final NData ndata, final NData candidate, int referenceIndex3,
+			int targetIndex3, final Superimposer superimposer) {
 		
 		// Here are all triple nucleotide candidates.
 		// Prepare for calculations.
@@ -385,7 +384,7 @@ public class GeometricAligner {
 		}
 
 		for (Nucleotide nucl : targetStructureMoved) {
-			for (Atom representative : nucl.representatives) {
+			for (Coordinates representative : nucl.representatives) {
 				Calculations.rotate(representative, superimposer.getRotation());
 				Calculations.shift(representative, superimposer.getTranslation());
 			}
@@ -401,15 +400,11 @@ public class GeometricAligner {
 		ArrayList<Nucleotide> nucleotidesTarget = new ArrayList<Nucleotide>(targetStructure.size());
 		HashSet<Integer> usedReference = new HashSet<Integer>();
 		HashSet<Integer> usedTarget = new HashSet<Integer>();
-		ArrayList<Integer> initialReference = new ArrayList<Integer>();
-		ArrayList<Integer> initialTarget = new ArrayList<Integer>();
 		for (int i = 0; i < chainReference.size(); i++) {
 			usedReference.add(chainReference.get(i));
 			usedTarget.add(chainTarget.get(i));
 			nucleotidesReference.add(referenceStructure.get(chainReference.get(i)));
 			nucleotidesTarget.add(targetStructure.get(chainTarget.get(i)));
-			initialReference.add(chainReference.get(i));
-			initialTarget.add(chainTarget.get(i));
 		}
 		
 		// Precompute table with RMSD improvements.
@@ -440,14 +435,14 @@ public class GeometricAligner {
 				// Shift and move.
 				rmsdSum = CalculateRmsdSum(chainReference, chainTarget, targetStructureMoved);
 
-				SVDSuperimposer superimposer = Calculations.FitForRMSD(Nucleotide.NucleotidesToTable(nucleotidesReference), Nucleotide.NucleotidesToTable(nucleotidesTarget));
+				Superimposer superimposer = Calculations.FitForRMSD(Nucleotide.NucleotidesToList(nucleotidesReference), Nucleotide.NucleotidesToList(nucleotidesTarget));
 				targetStructureMoved = new ArrayList<Nucleotide>(targetStructure.size());
 				for (Nucleotide res : targetStructure) {
 					targetStructureMoved.add((Nucleotide) res.clone());
 				}
 				
 				for (Nucleotide nucl : targetStructureMoved) {
-					for (Atom representative : nucl.representatives) {
+					for (Coordinates representative : nucl.representatives) {
 						Calculations.rotate(representative, superimposer.getRotation());
 						Calculations.shift(representative, superimposer.getTranslation());
 					}
@@ -458,18 +453,20 @@ public class GeometricAligner {
 			} 
 		}
 		
-		double currentRmsd = Calculations.FitAndCalculateRMSD(Nucleotide.NucleotidesToTable(nucleotidesReference), Nucleotide.NucleotidesToTable(nucleotidesTarget));
+		double currentRmsd = Calculations.FitAndCalculateRMSD(Nucleotide.NucleotidesToList(nucleotidesReference), Nucleotide.NucleotidesToList(nucleotidesTarget));
 		
 		// Finished adding nucleotides to the structure.
 		try {
 			semaphore.acquire();
 			// New alignment clearly better.
 			if (bestChainReference.size() < chainReference.size()) {
+				System.out.println(String.format("Improved Solution (%d ms):\t%d %f", System.currentTimeMillis() - startTime, chainReference.size(), currentRmsd));
 				bestRmsd = currentRmsd;
 				bestChainReference = chainReference;
 				bestChainTarget = chainTarget;
 			} else if (bestChainReference.size() == chainReference.size()) { // Possible RMSD improvement.
 				if (bestRmsd > currentRmsd) {
+					System.out.println(String.format("Improved RMSD (%d ms):\t%f -> %f", System.currentTimeMillis() - startTime, bestRmsd, currentRmsd));
 					bestRmsd = currentRmsd;
 					bestChainReference = chainReference;
 					bestChainTarget = chainTarget;
@@ -500,8 +497,8 @@ public class GeometricAligner {
 	private double CheckAddition(final Nucleotide lhs, final Nucleotide rhs) {
 		double sum = 0;
 		for (int i = 0; i < lhs.representatives.size(); i++) {
-			sum += Math.pow(Calc.getDistance(lhs.representatives.get(i),
-											 rhs.representatives.get(i)), 2);
+			sum += Math.pow(Coordinates.getDistance(lhs.representatives.get(i),
+											        rhs.representatives.get(i)), 2);
 		}
 		return sum;
 	}
@@ -542,8 +539,8 @@ public class GeometricAligner {
 		double rmsdSum = 0;
 		for (int i = 0; i < chainReference.size(); i++) {
 			for (int j = 0; j < referenceStructure.get(0).representatives.size(); j++) {
-				rmsdSum += Math.pow(Calc.getDistance(referenceStructure.get(chainReference.get(i)).representatives.get(j),
-											         targetStructureMoved.get(chainTarget.get(i)).representatives.get(j)),
+				rmsdSum += Math.pow(Coordinates.getDistance(referenceStructure.get(chainReference.get(i)).representatives.get(j),
+											                targetStructureMoved.get(chainTarget.get(i)).representatives.get(j)),
 						            2); 
 			}
 		}

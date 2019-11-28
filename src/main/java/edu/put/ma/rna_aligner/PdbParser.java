@@ -137,15 +137,6 @@ public class PdbParser {
 			// Average and add last residue.
 			
 			bsgcAtom.x = bsgcAtom.x / bsgcCounter;
-			bsgcAtom.y = bsgcAtom.x / bsgcCounter;
-			bsgcAtom.z = bsgcAtom.x / bsgcCounter;
-			rbgcAtom.x = rbgcAtom.x / rbgcCounter;
-			rbgcAtom.y = rbgcAtom.x / rbgcCounter;
-			rbgcAtom.z = rbgcAtom.x / rbgcCounter;
-			restAtom.x = restAtom.x / restCounter;
-			restAtom.y = restAtom.x / restCounter;
-			restAtom.z = restAtom.x / restCounter;
-			/*bsgcAtom.x = bsgcAtom.x / bsgcCounter;
 			bsgcAtom.y = bsgcAtom.y / bsgcCounter;
 			bsgcAtom.z = bsgcAtom.z / bsgcCounter;
 			rbgcAtom.x = rbgcAtom.x / rbgcCounter;
@@ -153,7 +144,7 @@ public class PdbParser {
 			rbgcAtom.z = rbgcAtom.z / rbgcCounter;
 			restAtom.x = restAtom.x / restCounter;
 			restAtom.y = restAtom.y / restCounter;
-			restAtom.z = restAtom.z / restCounter;*/
+			restAtom.z = restAtom.z / restCounter;
 			ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 			result.add(new Nucleotide(grained));
 		

@@ -4,9 +4,13 @@ Information about the project, results and included algorithms can be found here
 
 
 ## Usage
-Currently provided main displays what reference nucleotides were mapped to what target nucleotides.
+RNA 3D structure aligner usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)
+Provided methods: geometric, genetic
+Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.
+RMSD threshold: maximal RMSD score of resultant alignment. By default 3.5A is used.
 
-program <method> <reference.pdb> <target.pdb>
+Example input parameters:
+genetic example/1/1_solution_0_rpr.pdb example/1/testA_rpr.pdb seq-indep 3.5 example/1/output
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used  outside of this project!.**
 

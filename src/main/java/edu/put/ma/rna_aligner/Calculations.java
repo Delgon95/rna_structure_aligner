@@ -1,10 +1,15 @@
 package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.biojava.nbio.structure.jama.Matrix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Calculations {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Calculations.class);
 
   public static ArrayList<Coordinates> CopyAtoms(final ArrayList<Coordinates> atoms) {
     ArrayList<Coordinates> copy = new ArrayList<Coordinates>(atoms.size());
@@ -54,7 +59,7 @@ public class Calculations {
 
   public static double FitAndCalculateRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms) {
     if (first_atoms.size() != second_atoms.size()) {
-      System.out.println(String.format("WRONG LENGTH: %d %d", first_atoms.size(), second_atoms.size()));
+      LOGGER.warn(String.format("WRONG LENGTH: %d %d", first_atoms.size(), second_atoms.size()));
       return -1;
     }
 
@@ -73,4 +78,20 @@ public class Calculations {
     final ArrayList<Coordinates> fit_second_atoms = MoveAtomsForRMSD(second_atoms, superimposer);
     return Superimposer.getRMS(first_atoms, fit_second_atoms);
   }
+  
+  public static Superimposer FitforTripleRMSD(final ArrayList<Coordinates> first_atoms, final ArrayList<Coordinates> second_atoms) {
+	  final ArrayList<Coordinates> first_centroids = new ArrayList<Coordinates>(
+		Arrays.asList(Coordinates.getCentroid(first_atoms, 0, 3),
+				Coordinates.getCentroid(first_atoms, 3, 6),
+				Coordinates.getCentroid(first_atoms, 6, 9)));
+	  final ArrayList<Coordinates> second_centroids = new ArrayList<Coordinates>(
+		Arrays.asList(Coordinates.getCentroid(second_atoms, 0, 3),
+				Coordinates.getCentroid(second_atoms, 3, 6),
+				Coordinates.getCentroid(second_atoms, 6, 9)));
+	  
+	  
+	  return Calculations.FitForRMSD(first_centroids, second_centroids);
+      //return Calculations.CalculateRMSD(first_atoms, second_atoms, superimposer);
+  }
+  
 }

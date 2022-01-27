@@ -1,19 +1,25 @@
 package edu.put.ma.rna_aligner;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PdbParser {
-  private static final ArrayList<String> rest_atoms = new ArrayList<String>(Arrays.asList("C5'"));
-  private static final ArrayList<String> ryboze_atoms = new ArrayList<String>(Arrays.asList("C2'", "C1'", "O4'"));
-  private static final ArrayList<String> U_atoms = new ArrayList<String>(Arrays.asList("N1", "C6", "C5", "C4", "O4", "N3", "C2", "O2"));
-  private static final ArrayList<String> C_atoms = new ArrayList<String>(Arrays.asList("N1", "C6", "C5", "C4", "N4", "N3", "C2", "O2"));
-  private static final ArrayList<String> A_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N6", "N1", "C2", "N3", "C4"));
-  private static final ArrayList<String> G_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "O6", "N1", "C2", "N2", "N3", "C4"));
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PdbParser.class);
+	
+  private static final ArrayList<String> rest_atoms = new ArrayList<String>(Arrays.asList("P", "O5'", "C5'"));
+  private static final ArrayList<String> ryboze_atoms = new ArrayList<String>(Arrays.asList("C4'", "C3'", "C2'", "C1'", "O4'"));
+  private static final ArrayList<String> U_atoms = new ArrayList<String>(Arrays.asList("N1", "C6", "C5", "C4", "O4", "N3", "C2"));
+  private static final ArrayList<String> C_atoms = new ArrayList<String>(Arrays.asList("N1", "C6", "C5", "C4", "N3", "C2", "O2"));
+  private static final ArrayList<String> A_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"));
+  private static final ArrayList<String> G_atoms = new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"));
 
   @SuppressWarnings("resource")
   public ArrayList<Nucleotide> ParsePdbToCoarseGrained(final String pdb_filename) {
@@ -23,8 +29,7 @@ public class PdbParser {
     try {
       FileReader fileReader = new FileReader(pdb_filename);
       BufferedReader bufferedReader = new BufferedReader(fileReader);
-      int current_residue = 1;
-
+      String currentKey = null, currentResName = null;
       double bsgcCounter = 0;
       double rbgcCounter = 0;
       double restCounter = 0;
@@ -33,28 +38,54 @@ public class PdbParser {
       Coordinates restAtom = new Coordinates();
       Coordinates atom = new Coordinates();
       ArrayList<Coordinates> atoms = new ArrayList<Coordinates>();
-
       while ((line = bufferedReader.readLine()) != null) {
         double x, y, z;
         int residue;
+        String chain, iCode, resName, key;
         String[] split_line = line.split("\\s+");
         if (!split_line[0].equals("ATOM")) {
           continue;
         }
         if (split_line.length != 12) {
           x = Double.parseDouble(line.substring(31, 38).trim());
-          y = Double.parseDouble(line.substring(39, 46).trim());
-          z = Double.parseDouble(line.substring(47, 54).trim());
+          y = Double.parseDouble(line.substring(38, 46).trim());
+          z = Double.parseDouble(line.substring(46, 54).trim());
+          chain = line.substring(21, 22).trim();
           residue = Integer.parseInt(line.substring(23, 26).trim());
+          iCode = line.substring(26, 27).trim();
+          resName = line.substring(17, 20).trim();
         } else {
-          atom.x = Double.parseDouble(split_line[6]);
-          atom.y = Double.parseDouble(split_line[7]);
-          atom.z = Double.parseDouble(split_line[8]);
-          atoms.add(atom);
           x = Double.parseDouble(split_line[6]);
           y = Double.parseDouble(split_line[7]);
           z = Double.parseDouble(split_line[8]);
-          residue = Integer.parseInt(split_line[5]);
+          atom.x = x;
+          atom.y = y;
+          atom.z = z;
+          atoms.add(atom);
+          if (StringUtils.isNumeric(split_line[5])) {
+        	  residue = Integer.parseInt(split_line[5]);
+        	  iCode = "";
+          } else {
+        	  int residueSize = StringUtils.length(split_line[5]);
+        	  residue = Integer.parseInt(StringUtils.substring(split_line[5],0,residueSize-1));
+        	  iCode = StringUtils.substring(split_line[5],residueSize-1,residueSize);
+          }
+          chain = split_line[4];
+          resName = split_line[3];
+        }
+        if (StringUtils.isEmpty(chain)) {
+        	chain = "A";
+        }
+        key = (StringUtils.isEmpty(iCode)) ? new StringBuilder(chain).append(String.valueOf(residue)).toString() : 
+        	new StringBuilder(chain).append(String.valueOf(residue)).append(iCode).toString();
+        if (StringUtils.isBlank(currentKey)) {
+        	currentKey = key;
+        }
+        if (StringUtils.length(resName) == 3) {
+        	resName = getOneLetterCode(resName);
+        }
+    	if (StringUtils.isBlank(currentResName)) {
+    		currentResName = resName;
         }
 
         atom = new Coordinates();
@@ -72,7 +103,7 @@ public class PdbParser {
          * 8 - Z
          */
 
-        if (current_residue != residue) {
+        if (!StringUtils.equals(currentKey, key)) {
           bsgcAtom.x = bsgcAtom.x / bsgcCounter;
           bsgcAtom.y = bsgcAtom.y / bsgcCounter;
           bsgcAtom.z = bsgcAtom.z / bsgcCounter;
@@ -82,10 +113,20 @@ public class PdbParser {
           restAtom.x = restAtom.x / restCounter;
           restAtom.y = restAtom.y / restCounter;
           restAtom.z = restAtom.z / restCounter;
-          ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-          result.add(new Nucleotide(grained));
+          if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size()) && (bsgcCounter == getBaseAtomsCount(currentResName))) {
+	          ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));         
+	          result.add(new Nucleotide(grained, currentResName, currentKey));
+          } else {
+	          ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));         
+	          result.add(new Nucleotide(grained, currentResName, currentKey));
+        	  LOGGER.warn(String.format("%s %s.",restCounter, rest_atoms.size()));
+        	  LOGGER.warn(String.format("%s %s.",rbgcCounter, ryboze_atoms.size()));
+        	  LOGGER.warn(String.format("%s %s.",bsgcCounter, getBaseAtomsCount(currentResName)));
+        	  LOGGER.warn(String.format("Incomplete residue %s.",currentKey));
+          }
           // Reset
-          current_residue = residue;
+          currentKey = key;
+          currentResName = resName;
           bsgcAtom = new Coordinates();
           rbgcAtom = new Coordinates();
           restAtom = new Coordinates();
@@ -145,16 +186,57 @@ public class PdbParser {
       restAtom.x = restAtom.x / restCounter;
       restAtom.y = restAtom.y / restCounter;
       restAtom.z = restAtom.z / restCounter;
-      ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-      result.add(new Nucleotide(grained));
+      if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size()) && (bsgcCounter == getBaseAtomsCount(currentResName))) {
+    	  final ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
+    	  result.add(new Nucleotide(grained, currentResName, currentKey));
+      } else {
+    	  final ArrayList<Coordinates> grained = new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
+    	  result.add(new Nucleotide(grained, currentResName, currentKey));
+    	  LOGGER.warn(String.format("%s %s.",restCounter, rest_atoms.size()));
+    	  LOGGER.warn(String.format("%s %s.",rbgcCounter, ryboze_atoms.size()));
+    	  LOGGER.warn(String.format("%s %s.",bsgcCounter, getBaseAtomsCount(currentResName)));
+    	  LOGGER.warn(String.format("Incomplete residue %s.",currentKey));
+      }
 
-    } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (IOException e) {
-      e.printStackTrace();
+		LOGGER.error(e.getMessage(), e);
     }
 
     return result;
   }
+  
+  private static final int getBaseAtomsCount(final String resName) {
+	  final ArrayList<String> base_atoms;
+      if (resName.equals("U")) {
+        base_atoms = U_atoms;
+      } else if (resName.equals("C")) {
+        base_atoms = C_atoms;
+      } else if (resName.equals("A")) {
+        base_atoms = A_atoms;
+      } else { // G
+        base_atoms = G_atoms;
+      }
+      return base_atoms.size();
+  }
+
+private static String getOneLetterCode(final String resName) {
+	if ((StringUtils.equalsIgnoreCase("URI",resName)) || (StringUtils.equalsIgnoreCase("URA",resName)))
+		return "U";
+	else if (StringUtils.equalsIgnoreCase("ADE",resName))
+		return "A";
+	else if (StringUtils.equalsIgnoreCase("GUA",resName))
+		return "G";
+	else if (StringUtils.equalsIgnoreCase("CYT",resName))
+		return "C";
+	else if (StringUtils.endsWithIgnoreCase(resName,"U"))
+		return "U";
+	else if (StringUtils.endsWithIgnoreCase(resName,"C"))
+		return "C";
+	else if (StringUtils.endsWithIgnoreCase(resName,"G"))
+		return "G";
+	else if (StringUtils.endsWithIgnoreCase(resName,"A"))
+		return "A";
+	throw new IllegalArgumentException("Only ADE, GUA, CYT, URI|URA are supported.");
+}
+
 }

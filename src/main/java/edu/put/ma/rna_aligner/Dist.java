@@ -1,5 +1,6 @@
 package edu.put.ma.rna_aligner;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Dist {
@@ -34,13 +35,23 @@ public class Dist {
   public static double Similarity(final Dist lhs1, final Dist rhs1, final Dist lhs2, final Dist rhs2, final Dist lhs3, final Dist rhs3) {
     double similarity = 0;
     for (int i = 0; i < lhs1.distances.size(); i++) {
-      similarity += Math.pow(Math.abs(lhs1.distances.get(i) - rhs1.distances.get(i)) -
-          Math.abs(lhs2.distances.get(i) - rhs2.distances.get(i)), 2);
-      similarity += Math.pow(Math.abs(lhs2.distances.get(i) - rhs2.distances.get(i)) -
-          Math.abs(lhs3.distances.get(i) - rhs3.distances.get(i)), 2);
-      similarity += Math.pow(Math.abs(lhs3.distances.get(i) - rhs3.distances.get(i)) -
-          Math.abs(lhs1.distances.get(i) - rhs1.distances.get(i)), 2);
+      final double dist1 = Math.abs(lhs1.distances.get(i) - rhs1.distances.get(i));
+	  final double dist2 = Math.abs(lhs2.distances.get(i) - rhs2.distances.get(i));
+      final double dist3 = Math.abs(lhs3.distances.get(i) - rhs3.distances.get(i));
+	  similarity += Math.pow(dist1 - dist2, 2);
+	  similarity += Math.pow(dist2 - dist3, 2);
+      similarity += Math.pow(dist3 - dist1, 2);
     }
     return similarity;
+  }
+  public String toString() {
+	  final StringBuilder result = new StringBuilder();
+	  final DecimalFormat df = new DecimalFormat("#.00");
+	  for(double distance: distances) {
+		  if (result.length()>0)
+			  result.append(";");
+		  result.append(df.format(distance));
+	  }
+	  return result.toString();
   }
 }

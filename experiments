@@ -1,0 +1,155 @@
+RNA 3D structure aligner usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)
+Provided methods: geometric, genetic
+Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.
+RMSD threshold: maximal RMSD score of resultant alignment. By default 3.5A is used.
+
+Example input parameters:
+genetic /home/maciek/zurek/rna_structure_aligner/example/6/3_solution_0_rpr.pdb /home/maciek/zurek/rna_structure_aligner/example/6/3_chen_1_rpr.pdb seq-indep 3.5 /home/maciek/zurek/rna_structure_aligner/example/6/output
+
+Case studies:
+
+1. The simplest example (our example used at web-page)
+
+Reference structure is taken from 1st challenge published in RNA-Puzzles. Only chain 'A' is considered.
+Model was predicted by RNAComposer based on the sequence published for this particular challenge. Again only chain 'A' is considered.
+
+Residues number of reference structure: 23
+Residues number of model: 23
+
+A) Geometric, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 23
+RMSD score: 2.159
+Processing time [ms]: 427
+Alignment found: A1-A23 <=> A1-A23
+
+B) Geometric, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 23
+RMSD score: 2.159
+Processing time [ms]: 899
+Alignment found: A1-A23 <=> A1-A23
+
+C) Genetic, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 23
+RMSD score: 2.159
+Processing time [ms]: 622
+Alignment found: A1-A23 <=> A1-A23
+
+D) Genetic, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 23
+RMSD score: 2.159
+Processing time [ms]: 592
+Alignment found: A1-A23 <=> A1-A23
+
+2. 1st challenge example (1_solution_0_rpr.pdb vs. 1_das_3_rpr.pdb)
+
+Reference structure and the example model were published for 1st challenge in RNA-Puzzles.
+
+Residues number of reference structure: 46
+Residues number of model: 46
+
+A) Geometric, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 46
+RMSD score: 3.295
+Processing time [ms]: 1985
+Alignment found: A1-A23+B1-B23 <=> A1-A23+B1-B23
+
+B) Geometric, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 45
+RMSD score: 3.218
+Processing time [ms]: 7106
+Alignment found: A1-A23+B1+B2+B3+B4+B6-B23 <=> A1-A23+B2+B4+B3+B5+B6-B23
+Explanation: this is duplex and neighboring base-pairs are spatially similar to each other.
+
+C) Genetic, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 46
+RMSD score: 3.295
+Processing time [ms]: 1479
+Alignment found: A1-A23+B1-B23 <=> A1-A23+B1-B23
+
+D) Genetic, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 46
+RMSD score: 3.295
+Processing time [ms]: 1035
+Alignment found: A1-A23+B1-B23 <=> A1-A23+B1-B23
+
+3. 4th challenge example (4_0_solution_3V7E_rpr.pdb vs. 4_chen_1_rpr.pdb)
+
+Reference structure and the example model were published for 4th challenge in RNA-Puzzles.
+
+Residues number of reference structure: 126
+Residues number of model: 126
+
+A) Geometric, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 126
+RMSD score: 3.321
+Processing time [ms]: 90584
+Alignment found: A1-A126 <=> A1-A126
+
+B) Geometric, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 126
+RMSD score: 3.321
+Processing time [ms]: 94710
+Alignment found: A1-A126 <=> A1-A126
+
+C) Genetic, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 126
+RMSD score: 3.321
+Processing time [ms]: 3853
+Alignment found: A1-A126 <=> A1-A126
+
+D) Genetic, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 126
+RMSD score: 3.321
+Processing time [ms]: 4292
+Alignment found: A1-A126 <=> A1-A126
+
+For all aforementioned examples global RMSD score computed between the reference structure and the model was under 3.5A (input RMSD threshold) so the resultant alignment should cover both whole structures.
+
+In the below example the global RMSD score computed between the reference structure and the model exceeds 7.0A so the resultant alignment should be significantly shorter.
+
+4. 3rd challenge example (3_solution_0_rpr.pdb vs. 3_chen_1_rpr.pdb)
+
+Reference structure and the example model were published for 3rd challenge in RNA-Puzzles.
+
+Residues number of reference structure: 84
+Residues number of model: 84
+
+A) Geometric, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 40
+RMSD score: 3.230
+Processing time [ms]: 741
+Alignment found: A1-A16+A22-A30+A70-A84 <=> A1-A16+A22-A30+A70-A84
+
+B) Geometric, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 39
+RMSD score: 3.305
+Processing time [ms]: 3039
+Alignment found: A1-A15+A16+A17+A23-A29+A70-A84 <=> A1-A15+A17+A21+A23-A29+A70-A84
+
+C) Genetic, sequence-dependent, 3.5A
+
+Number of aligned nucleotides: 41
+RMSD score: 3.447
+Processing time [ms]: 165121
+Alignment found: A1-A17+A22-A30+A70-A84 <=> A1-A17+A22-A30+A70-A84
+
+D) Genetic, sequence-independent, 3.5A
+
+Number of aligned nucleotides: 42
+RMSD score: 3.438
+Processing time [ms]: 300335
+Alignment found: A1-A16+A17+A22-A30+A69-A84 <=> A1-A16+A18+A22-A30+A69-A84

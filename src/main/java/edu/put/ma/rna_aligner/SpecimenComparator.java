@@ -3,51 +3,61 @@ package edu.put.ma.rna_aligner;
 import java.util.Comparator;
 
 public class SpecimenComparator implements Comparator<Object> {
-  private double rmsd_limit = 3.5;
+	private double rmsd_limit = 3.5;
 
-  SpecimenComparator(double _rmsd_limit) {
-    this.rmsd_limit = _rmsd_limit;
-  }
+	SpecimenComparator(final double _rmsd_limit) {
+		this.rmsd_limit = _rmsd_limit;
+	}
 
-  public int compare(Object _lhs, Object _rhs) {
-    Specimen lhs = (Specimen) _lhs;
-    Specimen rhs = (Specimen) _rhs;
-    if (lhs.getUsedNucleotidesNumber() == 0 && rhs.getUsedNucleotidesNumber() == 0) {
-      return 0;
-    }
-    if (lhs.calculateRMSD() < this.rmsd_limit && rhs.calculateRMSD() >= this.rmsd_limit) {
-      return -1;
-    } else if (lhs.calculateRMSD() >= this.rmsd_limit && rhs.calculateRMSD() < this.rmsd_limit) {
-      return 1;
-    }
-    if (lhs.calculateRMSD() < this.rmsd_limit && rhs.calculateRMSD() < this.rmsd_limit) {
-      if (lhs.getRemainingNucleotidesNumber() < rhs.getRemainingNucleotidesNumber()) {
-        return -1;
-      } else if (lhs.getRemainingNucleotidesNumber() > rhs.getRemainingNucleotidesNumber()) {
-        return 1;
-      } else {
-        if (lhs.calculateRMSD() < rhs.calculateRMSD()) {
-          return -1;
-        } else if (lhs.calculateRMSD() > rhs.calculateRMSD()) {
-          return 1;
-        } else {
-          return 0;
-        }
-      }
-    } else {
-      if (lhs.calculateRMSD() > rhs.calculateRMSD()) {
-        return 1;
-      } else if (lhs.calculateRMSD() < rhs.calculateRMSD()) {
-        return -1;
-      } else {
-        if (lhs.getRemainingNucleotidesNumber() < rhs.getRemainingNucleotidesNumber()) {
-          return -1;
-        } else if (lhs.getRemainingNucleotidesNumber() > rhs.getRemainingNucleotidesNumber()) {
-          return 1;
-        } else {
-          return 0;
-        }
-      }
-    }
-  }
+	public int compare(final Object _lhs, final Object _rhs) {
+		final Specimen lhs = (Specimen) _lhs;
+		final Specimen rhs = (Specimen) _rhs;
+
+		if (Double.compare(lhs.calculateRMSD(), rmsd_limit) <= 0
+				&& Double.compare(rhs.calculateRMSD(), rmsd_limit) <= 0) {
+			if (lhs.getIncorrectlyAlignedResiduesRatio() < rhs.getIncorrectlyAlignedResiduesRatio())
+				return -1;
+			else if (lhs.getIncorrectlyAlignedResiduesRatio() > rhs.getIncorrectlyAlignedResiduesRatio())
+				return 1;
+			else {
+				if (lhs.getUsedNucleotidesNumber() < rhs.getUsedNucleotidesNumber())
+					return 1;
+				else if (lhs.getUsedNucleotidesNumber() > rhs.getUsedNucleotidesNumber())
+					return -1;
+				else {
+					if (lhs.calculateRMSD() < rhs.calculateRMSD())
+						return -1;
+					else if (lhs.calculateRMSD() > rhs.calculateRMSD())
+						return 1;
+					else
+						return 0;
+				}
+			}
+		} else {
+			if (Double.compare(lhs.calculateRMSD(), rmsd_limit) <= 0 && rhs.calculateRMSD() > rmsd_limit)
+				return -1;
+			else if (lhs.calculateRMSD() > rmsd_limit && Double.compare(rhs.calculateRMSD(), rmsd_limit) <= 0)
+				return 1;
+			else {
+				if (lhs.calculateRMSD() > rhs.calculateRMSD())
+					return 1;
+				else if (lhs.calculateRMSD() < rhs.calculateRMSD())
+					return -1;
+				else {
+					if (lhs.getIncorrectlyAlignedResiduesRatio() < rhs.getIncorrectlyAlignedResiduesRatio())
+						return -1;
+					else if (lhs.getIncorrectlyAlignedResiduesRatio() > rhs.getIncorrectlyAlignedResiduesRatio())
+						return 1;
+					else {
+						if (lhs.getUsedNucleotidesNumber() < rhs.getUsedNucleotidesNumber())
+							return 1;
+						else if (lhs.getUsedNucleotidesNumber() > rhs.getUsedNucleotidesNumber())
+							return -1;
+						else
+							return 0;
+					}
+				}
+			}
+		}
+	}
 }

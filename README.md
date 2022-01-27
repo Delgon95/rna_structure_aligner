@@ -4,18 +4,18 @@ Information about the project, results and included algorithms can be found here
 
 
 ## Usage
-RNA 3D structure aligner usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)
-Provided methods: geometric, genetic
-Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.
+RNA 3D structure aligner usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)</br>
+Provided methods: geometric, genetic</br>
+Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.</br>
 RMSD threshold: maximal RMSD score of resultant alignment. By default 3.5A is used.
 
-Example input parameters:
+Example input parameters:</br>
 genetic example/1/1_solution_0_rpr.pdb example/1/testA_rpr.pdb seq-indep 3.5 example/1/output
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used  outside of this project!.**
 
 ### Methods
-Both methods require coarse-grained structures as an input for alignment!
+Both methods require coarse-grained structures as an input for alignment!</br>
 Required RMSD and number of threads can be specified in AlignerConfig structure which also contains method-specific configurations.
 
 - genetic - GeneticAligner, uses genetic metaheuristic, multithreaded. 

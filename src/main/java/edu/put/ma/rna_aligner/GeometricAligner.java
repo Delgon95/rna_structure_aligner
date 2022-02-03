@@ -94,9 +94,7 @@ public class GeometricAligner {
 	            validPairs,
 	            maxValidCandidates,
 	            tripleBatch);
-	      //System.out.println("Done dualCoreBatch: " + batch);
 	    }
-	    //System.out.println("Done tripleCoreBatch: " + tripleBatch);
     }
     return CreateAlignerOutput();
   }
@@ -390,7 +388,7 @@ public class GeometricAligner {
 				            if (rmsd < config.tripleRmsdLimit) {
 				              triplesCandidates.add(new NData(i, j, rmsd, superimposer));
 				            }
-				          }
+				    }
 			          }
 		        	
 		        }
@@ -456,11 +454,11 @@ public class GeometricAligner {
 
           // validPairs rmsd value represent nucleotide index.
           final ArrayList<NData> candidates = validPairs.get((int) ndata.rmsd);
-          //int candidateIndex = candidates.size() - 1 - finalIndex;
 
           if (candidates.size() <= finalIndex) {
             return;
           }
+
 
           NData candidate = candidates.get(finalIndex);
 
@@ -614,26 +612,22 @@ public class GeometricAligner {
     	if (createPopulation) {
 		    spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
 		    spec.initialize(chainReference, chainTarget);
+		  if (populationSize > populationPool.size()) {
+			      populationPool.add(spec);
+		  }
     	} else {
     		spec = null;
     	}
       semaphore.acquire();
 	  // New alignment clearly better.
-	  if ((bestChainReference.size() < chainReference.size()) || 
+	  if ((bestChainReference.size() <= chainReference.size()) || 
 	    	  ((bestChainReference.size() == chainReference.size()) && (bestRmsd > currentRmsd))) {
-		   updateStopTime(bestChainReference.size() < chainReference.size());
+	       
+	       updateStopTime(bestChainReference.size() < chainReference.size());
 	       bestRmsd = currentRmsd;
 	       bestChainReference = chainReference;
 	       bestChainTarget = chainTarget;
-	       //System.out.println("RMSD:" + bestRmsd);
-	       //System.out.println("Start best?: " + chainReference.get(0) + " " + chainReference.get(1) + " " + chainReference.get(2) + " | " 
-	    	//	   + chainTarget.get(0) + " " + chainTarget.get(1) + " " + chainTarget.get(2));
 	  }
-	  if (createPopulation) {
-    	  if (populationSize > populationPool.size()) {
-		      populationPool.add(spec);
-    	  }
-      }
       semaphore.release();
     } catch (InterruptedException e) {
 		LOGGER.error(e.getMessage(), e);

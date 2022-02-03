@@ -50,6 +50,22 @@ public class Coordinates {
     return centroid;
   }
 
+  public static final Coordinates getCentroid(final ArrayList<Coordinates> atoms, int idx_start, int idx_end){
+    Coordinates centroid = new Coordinates();
+
+    for (int i = idx_start; i < idx_end; ++i) {
+      centroid.x += atoms.get(i).x;
+      centroid.y += atoms.get(i).y;
+      centroid.z += atoms.get(i).z;
+    }
+
+    centroid.x /= (idx_end - idx_start);
+    centroid.y /= (idx_end - idx_start);
+    centroid.z /= (idx_end - idx_start);
+
+    return centroid;
+  }
+
   public Coordinates add(final Coordinates shift) {
     this.x += shift.x;
     this.y += shift.y;

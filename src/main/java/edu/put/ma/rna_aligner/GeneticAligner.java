@@ -230,7 +230,6 @@ public class GeneticAligner {
 						}
 						if (((bestAlignmentSize == Math.min(referenceStructure.size(), targetStructure.size()))
 								/*&& (Double.compare(bestAlignmentRMSD,rmsdLimit) <= 0)*/)) {
-							//System.out.println("Terminate!");
 							terminate = true;
 							break;
 						}
@@ -283,7 +282,6 @@ public class GeneticAligner {
 									}
 									if (((bestAlignmentSize == Math.min(referenceStructure.size(), targetStructure.size()))
 											/*&& (Double.compare(bestAlignmentRMSD,rmsdLimit) <= 0)*/)) {
-										System.out.println("Terminate!2");
 										terminate = true;
 										break;
 									}
@@ -300,7 +298,6 @@ public class GeneticAligner {
 
 						if (((best_size == Math.min(referenceStructure.size(), targetStructure.size()))
 								/*&& (Double.compare(best_rmsd,rmsdLimit) <= 0)*/))
-							System.out.println("Break!");
 							terminate = true;
 							break;
 

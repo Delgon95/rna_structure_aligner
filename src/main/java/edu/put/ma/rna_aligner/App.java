@@ -167,11 +167,13 @@ public class App {
 		final File referenceFile = Paths.get(args[1]).toFile();
 		if (!((referenceFile.exists()) && (referenceFile.isFile()))) {
 			LOGGER.error("Reference structure file must be defined!");
+			System.exit(1);
 		}
 
 		final File modelFile = Paths.get(args[2]).toFile();
 		if (!((modelFile.exists()) && (modelFile.isFile()))) {
 			LOGGER.error("Model file must be defined!");
+			System.exit(1);
 		}
 		
 		if ((StringUtils.equalsIgnoreCase(args[3], "seq-dep")) || (StringUtils.equalsIgnoreCase(args[3], "seq-indep"))) {

@@ -15,4 +15,5 @@ if mvn package; then
   ls -l target
 else
   echo "Could not compile RNAHugs package."
+  exit 3
 fi

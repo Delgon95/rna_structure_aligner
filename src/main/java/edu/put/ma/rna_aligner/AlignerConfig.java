@@ -2,8 +2,6 @@ package edu.put.ma.rna_aligner;
 
 public class AlignerConfig {
   // General config.
-  public double pairRmsdLimit = 0.65;
-  public double tripleRmsdLimit = 1.0;
   public double rmsdLimit = 3.5;
   // Number of threads used for calculations. 
   public int threads = 12;
@@ -20,9 +18,10 @@ public class AlignerConfig {
   public double imprRmsdPercentage = 0.01;
   public long imprRmsdFlat = 1;
 
-  public boolean geometricPopulation = true;
 
   // Geometric
+  public double pairRmsdLimit = 0.65;
+  public double tripleRmsdLimit = 1.0;
   // How many batches of 2 nucleotide cores should be made;
   // if rmsd limit is 4 and split is 4 batches (25%) - batch up to 1 RMSD, 2, 3 and 4;
   // Small number of batches will require more RAM but will recalculate cores fewer number of times.
@@ -36,6 +35,7 @@ public class AlignerConfig {
   public double tripleCoreBestPercentage = 0.25;
 
   // Genetic
+  public boolean geometricPopulation = true;
   // How long can the calculations go without result improvement.
   // After time period, calculations are reset and thread starts again.
   public double resetThreadTime = 60;

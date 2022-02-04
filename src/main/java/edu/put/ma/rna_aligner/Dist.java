@@ -48,8 +48,9 @@ public class Dist {
     final StringBuilder result = new StringBuilder();
     final DecimalFormat df = new DecimalFormat("#.00");
     for (double distance : distances) {
-      if (result.length() > 0)
+      if (result.length() > 0) {
         result.append(";");
+      }
       result.append(df.format(distance));
     }
     return result.toString();

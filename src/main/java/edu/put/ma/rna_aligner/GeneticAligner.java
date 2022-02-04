@@ -41,8 +41,9 @@ public class GeneticAligner {
     referenceStructure = _referenceStructure;
     targetStructure = _targetStructure;
     isSequenceDependent = _isSequenceDependent;
-    if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size()))
+    if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size())) {
       isSequenceDependent = !isSequenceDependent;
+    }
     crossChance = config.crossChance;
     mutationChance = config.mutationChance + crossChance;
     newSpecimenChance = config.newSpecimenChance + mutationChance;
@@ -188,8 +189,9 @@ public class GeneticAligner {
         } else {
           int count = 0;
           while (population.size() < config.populationSize) {
-            if (count > 10)
+            if (count > 10) {
               break;
+            }
             final Specimen spec =
                 new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
             spec.initialize(rand.nextInt(85) + 5);
@@ -199,8 +201,9 @@ public class GeneticAligner {
                 spec.calculateRMSD();
                 population.add(spec);
                 count = 0;
-              } else
+              } else {
                 count++;
+              }
             }
           }
         }
@@ -355,10 +358,11 @@ public class GeneticAligner {
   private final void updatePopulationsNumber(final boolean init) {
     try {
       semaphore.acquire();
-      if (init)
+      if (init) {
         numberOfPopulationsWithoutImprovement = 0;
-      else
+      } else {
         numberOfPopulationsWithoutImprovement++;
+      }
     } catch (InterruptedException e) {
       LOGGER.error(e.getMessage(), e);
     } finally {

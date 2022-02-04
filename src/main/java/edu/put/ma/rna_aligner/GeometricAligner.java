@@ -142,7 +142,9 @@ public class GeometricAligner {
     final ArrayList<Nucleotide> nucleotidesReference = new ArrayList<Nucleotide>();
     final ArrayList<Nucleotide> nucleotidesTarget = new ArrayList<Nucleotide>();
 
-    for (int i = 0; i < referenceStructure.size(); i++) sortedReference.set(i, i);
+    for (int i = 0; i < referenceStructure.size(); i++) {
+      sortedReference.set(i, i);
+    }
     int count = 0;
     for (int i = 0; i < bestChainReference.size(); i++) {
       final int referenceIndex = bestChainReference.get(i).intValue();
@@ -370,7 +372,6 @@ public class GeometricAligner {
 
                 if (miniRmsd < config.tripleRmsdLimit) {
                   triplesCandidates.add(new NData(i, j, miniRmsd, superimposer));
-
                 } else if (miniRmsd < config.tripleRmsdLimit * 1.15) {
                   superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
                   final ArrayList<Coordinates> fitTargetAtoms =

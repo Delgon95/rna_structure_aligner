@@ -232,22 +232,23 @@ public class PdbParser {
 
   private static String getOneLetterCode(final String resName) {
     if ((StringUtils.equalsIgnoreCase("URI", resName))
-        || (StringUtils.equalsIgnoreCase("URA", resName)))
+        || (StringUtils.equalsIgnoreCase("URA", resName))) {
       return "U";
-    else if (StringUtils.equalsIgnoreCase("ADE", resName))
+    } else if (StringUtils.equalsIgnoreCase("ADE", resName)) {
       return "A";
-    else if (StringUtils.equalsIgnoreCase("GUA", resName))
+    } else if (StringUtils.equalsIgnoreCase("GUA", resName)) {
       return "G";
-    else if (StringUtils.equalsIgnoreCase("CYT", resName))
+    } else if (StringUtils.equalsIgnoreCase("CYT", resName)) {
       return "C";
-    else if (StringUtils.endsWithIgnoreCase(resName, "U"))
+    } else if (StringUtils.endsWithIgnoreCase(resName, "U")) {
       return "U";
-    else if (StringUtils.endsWithIgnoreCase(resName, "C"))
+    } else if (StringUtils.endsWithIgnoreCase(resName, "C")) {
       return "C";
-    else if (StringUtils.endsWithIgnoreCase(resName, "G"))
+    } else if (StringUtils.endsWithIgnoreCase(resName, "G")) {
       return "G";
-    else if (StringUtils.endsWithIgnoreCase(resName, "A"))
+    } else if (StringUtils.endsWithIgnoreCase(resName, "A")) {
       return "A";
+    }
     throw new IllegalArgumentException("Only ADE, GUA, CYT, URI|URA are supported.");
   }
 }

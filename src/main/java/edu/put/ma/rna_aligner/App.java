@@ -36,8 +36,9 @@ public class App {
     // Aligner function input: config, coarse-grained RNA structures.
 
     boolean isSequenceDependent = true;
-    if (StringUtils.equalsIgnoreCase("seq-indep", args[3]))
+    if (StringUtils.equalsIgnoreCase("seq-indep", args[3])) {
       isSequenceDependent = false;
+    }
 
     final double rmsdLimit = Double.parseDouble(args[4]);
 
@@ -70,8 +71,9 @@ public class App {
       outputStringBuilder.append(String.format("RMSD score: %.3f\n", output.rmsd));
       outputStringBuilder.append(
           String.format("Processing time [ms]: %d\n", output.processingTime));
-    } else
+    } else {
       outputStringBuilder.append(String.format("Alignment is not found.\n"));
+    }
 
     saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                        .append(File.separator)

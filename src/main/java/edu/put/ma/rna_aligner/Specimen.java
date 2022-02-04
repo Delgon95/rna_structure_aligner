@@ -97,8 +97,9 @@ public class Specimen {
       primaryNucleotidesUsed[idxRef] = 1;
       int idx = availableNucleotides.indexOf(idxRef);
       // Should always be >= 0.
-      if (idx >= 0)
+      if (idx >= 0) {
         availableNucleotides.remove(idx);
+      }
       secondaryNucleotidesMap[idxRef] = idxTar;
       secondToFirst.put(idxTar, idxRef);
     }
@@ -114,20 +115,22 @@ public class Specimen {
       // 10-90 chance to use primary residue.
       if (rand.nextInt(100) < percentage) {
         primaryNucleotidesUsed[i] = 1;
-        if (selected == -1)
+        if (selected == -1) {
           selected = getRandomAvailable();
-        else {
+        } else {
           final Integer index = Integer.valueOf(++selected);
-          if (availableNucleotides.contains(index))
+          if (availableNucleotides.contains(index)) {
             availableNucleotides.remove(index);
-          else
+          } else {
             selected = getRandomAvailable();
+          }
         }
         secondaryNucleotidesMap[i] = selected;
-        if (selected >= 0)
+        if (selected >= 0) {
           secondToFirst.put(selected, i);
-        else
+        } else {
           primaryNucleotidesUsed[i] = -1;
+        }
       } else {
         selected = -1;
         primaryNucleotidesUsed[i] = -1;
@@ -149,12 +152,14 @@ public class Specimen {
       availableNucleotides.remove(index);
       final Integer leftNeighbour = Integer.valueOf(value - 1);
       if ((!promisingNucleotides.contains(leftNeighbour))
-          && (availableNucleotides.contains(leftNeighbour)))
+          && (availableNucleotides.contains(leftNeighbour))) {
         promisingNucleotides.add(leftNeighbour);
+      }
       final Integer rightNeighbour = Integer.valueOf(value + 1);
       if ((!promisingNucleotides.contains(rightNeighbour))
-          && (availableNucleotides.contains(rightNeighbour)))
+          && (availableNucleotides.contains(rightNeighbour))) {
         promisingNucleotides.add(rightNeighbour);
+      }
       return value;
     }
     return -1;
@@ -183,8 +188,9 @@ public class Specimen {
       for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
         if (primaryNucleotidesUsed[i] == 1) {
           final int targetIndex = secondaryNucleotidesMap[i];
-          if ((targetIndex > -1) && (i != targetIndex))
+          if ((targetIndex > -1) && (i != targetIndex)) {
             incorrectlyAlignedResidues++;
+          }
         }
       }
     } else {
@@ -193,8 +199,11 @@ public class Specimen {
       for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
         if (primaryNucleotidesUsed[i] == 1) {
           final int targetIndex = secondaryNucleotidesMap[i];
-          if ((targetIndex>-1) /*&& (!StringUtils.equalsIgnoreCase(primaryNucleotides.get(i).getCode(), secondaryNucleotides.get(targetIndex).getCode()))*/)
+          if ((targetIndex > -1)) {
+            /*&& (!StringUtils.equalsIgnoreCase(primaryNucleotides.get(i).getCode(),
+             * secondaryNucleotides.get(targetIndex).getCode()))*/
             incorrectlyAlignedResidues++;
+          }
           idxs[targetIndex] = i;
         }
       }
@@ -211,8 +220,9 @@ public class Specimen {
                   || ((i - 1 < 0) && (i + 1 < idxs.length) && (idxs[i + 1] >= 0)
                       && (Math.abs(idxs[i] - idxs[i + 1]) > 1))
                   || ((i - 1 >= 0) && (i + 1 >= idxs.length) && (idxs[i - 1] >= 0)
-                      && (Math.abs(idxs[i - 1] - idxs[i]) > 1))))
+                      && (Math.abs(idxs[i - 1] - idxs[i]) > 1)))) {
             incorrectlyAlignedResidues++;
+          }
         }
       }
     }
@@ -231,8 +241,9 @@ public class Specimen {
           availableNucleotides.add(secondaryNucleotidesMap[i]);
           secondToFirst.remove(secondaryNucleotidesMap[i]);
           secondaryNucleotidesMap[i] = -1;
-          if (!changed)
+          if (!changed) {
             changed = true;
+          }
         } else if ((i < secondaryNucleotidesMap.length - 2)
             && (secondaryNucleotidesMap[i + 1] == -1)
             && (secondaryNucleotidesMap[i] + 1 == secondaryNucleotidesMap[i + 2])) {
@@ -247,8 +258,9 @@ public class Specimen {
           temp_primary = secondaryNucleotidesMap[index1];
           secondaryNucleotidesMap[index1] = secondaryNucleotidesMap[index2];
           secondaryNucleotidesMap[index2] = temp_primary;
-          if (!changed)
+          if (!changed) {
             changed = true;
+          }
         } else if ((i < secondaryNucleotidesMap.length - 1) && (secondaryNucleotidesMap[i + 1] >= 0)
             && (secondaryNucleotidesMap[i] == secondaryNucleotidesMap[i + 1] + 1)) {
           final int index1 = i;
@@ -263,8 +275,9 @@ public class Specimen {
           temp_primary = secondaryNucleotidesMap[index1];
           secondaryNucleotidesMap[index1] = secondaryNucleotidesMap[index2];
           secondaryNucleotidesMap[index2] = temp_primary;
-          if (!changed)
+          if (!changed) {
             changed = true;
+          }
         }
       }
     }
@@ -294,28 +307,31 @@ public class Specimen {
           if ((index - 1 >= 0) && (secondaryNucleotidesMap[index - 1] != -1)) {
             selected = secondaryNucleotidesMap[index - 1] + 1;
             final Integer val = Integer.valueOf(selected);
-            if (availableNucleotides.contains(val))
+            if (availableNucleotides.contains(val)) {
               availableNucleotides.remove(val);
-            else {
+            } else {
               selected = -1;
               if ((index + 1 < secondaryNucleotidesMap.length)
                   && (secondaryNucleotidesMap[index + 1] != -1)) {
                 selected = secondaryNucleotidesMap[index + 1] - 1;
                 final Integer val2 = Integer.valueOf(selected);
-                if (availableNucleotides.contains(val2))
+                if (availableNucleotides.contains(val2)) {
                   availableNucleotides.remove(val2);
-                else
+                } else {
                   selected = -1;
+                }
               }
             }
           }
-          if (selected == -1)
+          if (selected == -1) {
             selected = getRandomAvailable();
+          }
           secondaryNucleotidesMap[index] = selected;
-          if (selected >= 0)
+          if (selected >= 0) {
             secondToFirst.put(selected, index);
-          else
+          } else {
             primaryNucleotidesUsed[index] = -1;
+          }
         }
         break;
         // Add Swap 2 random.
@@ -351,10 +367,11 @@ public class Specimen {
 
         int selected = getRandomAvailable();
         secondaryNucleotidesMap[index3] = selected;
-        if (selected >= 0)
+        if (selected >= 0) {
           secondToFirst.put(selected, index3);
-        else
+        } else {
           primaryNucleotidesUsed[index3] = -1;
+        }
         break;
     }
   }
@@ -421,10 +438,11 @@ public class Specimen {
             // Add random available
             int selected = getRandomAvailable();
             secondaryNucleotidesMap[i] = selected;
-            if (selected >= 0)
+            if (selected >= 0) {
               secondToFirst.put(selected, i);
-            else
+            } else {
               this.primaryNucleotidesUsed[i] = -1;
+            }
           }
         }
       }
@@ -460,10 +478,12 @@ public class Specimen {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
     Specimen specimen = (Specimen) o;
     return Objects.deepEquals(secondaryNucleotidesMap, specimen.secondaryNucleotidesMap);
   }

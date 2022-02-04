@@ -1,7 +1,6 @@
 package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
-
 import org.biojava.nbio.structure.jama.Matrix;
 
 public class Coordinates {
@@ -29,12 +28,11 @@ public class Coordinates {
   }
 
   public static double getDistance(final Coordinates lhs, final Coordinates rhs) {
-    return Math.sqrt(Math.pow(lhs.x - rhs.x, 2) +
-        Math.pow(lhs.y - rhs.y, 2) +
-        Math.pow(lhs.z - rhs.z, 2));
+    return Math.sqrt(
+        Math.pow(lhs.x - rhs.x, 2) + Math.pow(lhs.y - rhs.y, 2) + Math.pow(lhs.z - rhs.z, 2));
   }
 
-  public static final Coordinates getCentroid(final ArrayList<Coordinates> atoms){
+  public static final Coordinates getCentroid(final ArrayList<Coordinates> atoms) {
     Coordinates centroid = new Coordinates();
 
     for (final Coordinates coord : atoms) {
@@ -50,7 +48,8 @@ public class Coordinates {
     return centroid;
   }
 
-  public static final Coordinates getCentroid(final ArrayList<Coordinates> atoms, int idx_start, int idx_end){
+  public static final Coordinates getCentroid(
+      final ArrayList<Coordinates> atoms, int idx_start, int idx_end) {
     Coordinates centroid = new Coordinates();
 
     for (int i = idx_start; i < idx_end; ++i) {
@@ -80,11 +79,13 @@ public class Coordinates {
     return this;
   }
 
-  public static final Coordinates getCenterVector(final ArrayList<Coordinates> atomSet, final Coordinates centroid){
+  public static final Coordinates getCenterVector(
+      final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
     return new Coordinates().substract(centroid);
   }
 
-  public static final ArrayList<Coordinates> center(final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
+  public static final ArrayList<Coordinates> center(
+      final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
     Coordinates shiftVector = getCenterVector(atomSet, centroid);
 
     ArrayList<Coordinates> centered = new ArrayList<Coordinates>(atomSet.size());
@@ -99,15 +100,12 @@ public class Coordinates {
     Coordinates multiplied = new Coordinates(this);
 
     final double[][] matrixArray = matrix.getArray();
-    multiplied.x = this.x * matrixArray[0][0] +
-        this.y * matrixArray[1][0] +
-        this.z * matrixArray[2][0];
-    multiplied.y = this.x * matrixArray[0][1] +
-        this.y * matrixArray[1][1] +
-        this.z * matrixArray[2][1];
-    multiplied.z = this.x * matrixArray[0][2] +
-        this.y * matrixArray[1][2] +
-        this.z * matrixArray[2][2];
+    multiplied.x =
+        this.x * matrixArray[0][0] + this.y * matrixArray[1][0] + this.z * matrixArray[2][0];
+    multiplied.y =
+        this.x * matrixArray[0][1] + this.y * matrixArray[1][1] + this.z * matrixArray[2][1];
+    multiplied.z =
+        this.x * matrixArray[0][2] + this.y * matrixArray[1][2] + this.z * matrixArray[2][2];
 
     return multiplied;
   }

@@ -3,7 +3,7 @@ package edu.put.ma.rna_aligner;
 public class AlignerConfig {
   // General config.
   public double rmsdLimit = 3.5;
-  // Number of threads used for calculations. 
+  // Number of threads used for calculations.
   public int threads = 12;
   // Break calculations after (300) seconds and return AlignerOutput.
   public double returnTime = 300;
@@ -18,19 +18,20 @@ public class AlignerConfig {
   public double imprRmsdPercentage = 0.01;
   public long imprRmsdFlat = 1;
 
-
   // Geometric
   public double pairRmsdLimit = 0.65;
   public double tripleRmsdLimit = 1.0;
   // How many batches of 2 nucleotide cores should be made;
   // if rmsd limit is 4 and split is 4 batches (25%) - batch up to 1 RMSD, 2, 3 and 4;
   // Small number of batches will require more RAM but will recalculate cores fewer number of times.
-  // Batch = 1 will store all possible dual core in the memory. It can be very RAM demanding for larger structures.
+  // Batch = 1 will store all possible dual core in the memory. It can be very RAM demanding for
+  // larger structures.
   public int dualCoreBatches = 2;
 
-  // tripleCoreBestPercentage how many (percentage wise) best tripleCores should be calculated in the first batch (out of 2).
-  // BatchMaximum hard maximum limit of triple cores for candidate to consider in the first batch.
-  // Introduced to help with batches that can have huge small number of candidates and should be calculated at once.
+  // tripleCoreBestPercentage how many (percentage wise) best tripleCores should be calculated in
+  // the first batch (out of 2). BatchMaximum hard maximum limit of triple cores for candidate to
+  // consider in the first batch. Introduced to help with batches that can have huge small number of
+  // candidates and should be calculated at once.
   public int tripleCoreBatchMinimum = 25;
   public double tripleCoreBestPercentage = 0.25;
 
@@ -53,7 +54,7 @@ public class AlignerConfig {
   public int tripleMutation = 10;
   public int quadrupleMutation = 10;
 
-  AlignerConfig () {
+  AlignerConfig() {
     super();
   }
 }

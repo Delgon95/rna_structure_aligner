@@ -9,7 +9,7 @@ public class NDataComparator implements Comparator<NData> {
       return 1;
     } else if (lhs.rmsd > rhs.rmsd) {
       return -1;
-    } 
+    }
     return 0;
   }
 }

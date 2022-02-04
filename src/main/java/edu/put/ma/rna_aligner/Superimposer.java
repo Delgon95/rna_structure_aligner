@@ -1,7 +1,6 @@
 package edu.put.ma.rna_aligner;
 
 import java.util.ArrayList;
-
 import org.biojava.nbio.structure.jama.Matrix;
 import org.biojava.nbio.structure.jama.SingularValueDecomposition;
 
@@ -15,18 +14,20 @@ public class Superimposer {
   Coordinates centroidA;
   Coordinates centroidB;
 
-  public Superimposer(final ArrayList<Coordinates> atomSet1, final ArrayList<Coordinates> atomSet2) {
+  public Superimposer(
+      final ArrayList<Coordinates> atomSet1, final ArrayList<Coordinates> atomSet2) {
     centroidA = Coordinates.getCentroid(atomSet1);
     centroidB = Coordinates.getCentroid(atomSet2);
 
     // center at centroid
     Matrix centereda = CenteredCoordsMatrix(atomSet1, centroidA);
-    Matrix centeredb = CenteredCoordsMatrixTransposed(atomSet2, centroidB);    	
+    Matrix centeredb = CenteredCoordsMatrixTransposed(atomSet2, centroidB);
 
     calculate(centereda, centeredb);
   }
 
-  private final Matrix CenteredCoordsMatrix(final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
+  private final Matrix CenteredCoordsMatrix(
+      final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
     Coordinates shiftVector = Coordinates.getCenterVector(atomSet, centroid);
     Matrix centered = new Matrix(atomSet.size(), 3);
 
@@ -38,7 +39,8 @@ public class Superimposer {
     return centered;
   }
 
-  private final Matrix CenteredCoordsMatrixTransposed(final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
+  private final Matrix CenteredCoordsMatrixTransposed(
+      final ArrayList<Coordinates> atomSet, final Coordinates centroid) {
     Coordinates shiftVector = Coordinates.getCenterVector(atomSet, centroid);
     Matrix centered = new Matrix(3, atomSet.size());
 
@@ -50,7 +52,7 @@ public class Superimposer {
     return centered;
   }
 
-  private void calculate (Matrix a, Matrix b_trans) {
+  private void calculate(Matrix a, Matrix b_trans) {
     Matrix corr = b_trans.times(a);
 
     SingularValueDecomposition svd = corr.svd();
@@ -77,7 +79,6 @@ public class Superimposer {
       Matrix nv_transp = vt.transpose();
       rot_nottrans = nv_transp.times(u_transp);
       rot = rot_nottrans.transpose();
-
     }
 
     Coordinates cb_tmp = centroidB.timesMatrix(rot);
@@ -88,15 +89,16 @@ public class Superimposer {
     return rot;
   }
 
-  public final Coordinates getTranslation(){
+  public final Coordinates getTranslation() {
     return translation;
   }
 
-  public static double getRMS(final ArrayList<Coordinates> atomSet1, final ArrayList<Coordinates> atomSet2) {
+  public static double getRMS(
+      final ArrayList<Coordinates> atomSet1, final ArrayList<Coordinates> atomSet2) {
     double sum = 0.0;
-    for (int i = 0 ; i < atomSet1.size(); i++) {
+    for (int i = 0; i < atomSet1.size(); i++) {
       double d = Coordinates.getDistance(atomSet1.get(i), atomSet2.get(i));
-      sum += (d*d);
+      sum += (d * d);
     }
 
     double avd = (sum / atomSet1.size());

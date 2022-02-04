@@ -261,7 +261,7 @@ public class GeneticAligner {
                         == 0)
                     && (best_size == currentSize) && (best_rmsd > currentRmsd))) {
               last_improvement = System.currentTimeMillis();
-              ;
+
               best_size = currentSize;
               best_rmsd = currentRmsd;
               best_incorrectlyAlignedResiduesRatio = incorrectlyAlignedResiduesRatio;
@@ -296,13 +296,15 @@ public class GeneticAligner {
                 }
               }
 
-            } else
+            } else {
               updatePopulationsNumber(false);
+            }
 
             if (((best_size == Math.min(referenceStructure.size(), targetStructure.size()))
-                    /*&& (Double.compare(best_rmsd,rmsdLimit) <= 0)*/))
+                    /*&& (Double.compare(best_rmsd,rmsdLimit) <= 0)*/)) {
               terminate = true;
-            break;
+              break;
+            }
           }
         }
 
@@ -318,8 +320,9 @@ public class GeneticAligner {
           }
           if (((bestAlignmentSize == Math.min(referenceStructure.size(), targetStructure.size()))
                   && (Double.compare(bestAlignmentRMSD, rmsdLimit) <= 0))
-              || (numberOfPopulationsWithoutImprovement > 300))
+              || (numberOfPopulationsWithoutImprovement > 300)) {
             terminate = true;
+          }
         } catch (InterruptedException e) {
           LOGGER.error(e.getMessage(), e);
         } finally {

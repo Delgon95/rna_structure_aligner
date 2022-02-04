@@ -36,14 +36,14 @@ public class AlignerConfig {
   public double tripleCoreBestPercentage = 0.25;
 
   // Genetic
-  public boolean geometricPopulation = true;
+  public boolean geometricPopulation = false;
   // How long can the calculations go without result improvement.
   // After time period, calculations are reset and thread starts again.
   public double resetThreadTime = 60;
   // How many of the best specimen are kept in the next generation.
   public double bestPercentage = 0.15;
   // Generation size / population;
-  public int populationSize = 125;
+  public int populationSize = 200;
   // Chances in whole percents.
   public int crossChance = 25;
   public int mutationChance = 74;

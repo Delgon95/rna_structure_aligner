@@ -27,7 +27,7 @@ with:
 
 
 ```
-java -jar target/rna-hugs-1.1-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
+java -jar target/rna-hugs-1.0-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
 
 usage: RNA Hugs
  -m,--method <method>             (optional) Method used to align input structures.

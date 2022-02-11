@@ -3,10 +3,18 @@ package edu.put.ma.rna_aligner;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.Thread;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.biojava.nbio.structure.Atom;
@@ -22,44 +30,52 @@ public class App {
   private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
   public static void main(final String[] args) {
-    final AlignerConfig config = new AlignerConfig();
+    CommandLine parsed_args = validateInput(args);
 
-    validateInput(args, config);
+    AlignerConfig config = new AlignerConfig();
+    try {
+      config.rmsdLimit = Double.parseDouble(parsed_args.getOptionValue("rmsd", "3.5"));
+      config.returnTime = Integer.parseInt(parsed_args.getOptionValue("time-limit", "300"));
+      config.threads = Integer.parseInt(
+          parsed_args.getOptionValue("threads", Integer.toString(Thread.activeCount())));
+    } catch (NumberFormatException e) {
+      LOGGER.error(e.getMessage());
+      System.exit(2);
+    }
 
-    final File outputDirectory = getOutputDirectory(args);
+    final File outputDirectory = getOutputDirectory(parsed_args);
 
     // Parse PDB and create default coarse-grained structures.
     final PdbParser parser = new PdbParser();
-    final ArrayList<Nucleotide> referenceStructure = parser.ParsePdbToCoarseGrained(args[1]);
-    final ArrayList<Nucleotide> targetStructure = parser.ParsePdbToCoarseGrained(args[2]);
+    final ArrayList<Nucleotide> referenceStructure =
+        parser.ParsePdbToCoarseGrained(parsed_args.getOptionValue("reference"));
+    final ArrayList<Nucleotide> targetStructure =
+        parser.ParsePdbToCoarseGrained(parsed_args.getOptionValue("target"));
 
     // Aligner function input: config, coarse-grained RNA structures.
 
-    boolean isSequenceDependent = true;
-    if (StringUtils.equalsIgnoreCase("seq-indep", args[3])) {
-      isSequenceDependent = false;
-    }
-
-    final double rmsdLimit = Double.parseDouble(args[4]);
+    final boolean isSequenceDependent =
+        StringUtils.equalsIgnoreCase(parsed_args.getOptionValue("mode", "seq-indep"), "seq-dep");
 
     AlignerOutput output = null;
-    if (args[0].equals("genetic")) {
-      GeneticAligner aligner = new GeneticAligner(
-          config, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
+    if (StringUtils.equalsIgnoreCase(
+            parsed_args.getOptionValue("method", "geometric"), "geometric")) {
+      GeometricAligner aligner = new GeometricAligner(
+          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit);
       output = aligner.calculate();
     } else {
-      GeometricAligner aligner = new GeometricAligner(
-          config, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
+      GeneticAligner aligner = new GeneticAligner(
+          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit);
       output = aligner.calculate();
     }
 
     final String modelNameWithoutExtension =
-        FilenameUtils.removeExtension(FilenameUtils.getName(args[2]));
+        FilenameUtils.removeExtension(FilenameUtils.getName(parsed_args.getOptionValue("target")));
 
     final StringBuilder outputStringBuilder = new StringBuilder();
     outputStringBuilder.append(String.format("Aligning mode: %s\n",
         ((isSequenceDependent) ? "sequence-dependent" : "sequence-independent")));
-    outputStringBuilder.append(String.format("Maximal RMSD threshold: %.2f\n", rmsdLimit));
+    outputStringBuilder.append(String.format("Maximal RMSD threshold: %.2f\n", config.rmsdLimit));
     outputStringBuilder.append(
         String.format("Residues number of reference structure: %d\n", referenceStructure.size()));
     outputStringBuilder.append(
@@ -105,7 +121,7 @@ public class App {
                          .toString(),
           getAlignment(referenceStructure, targetStructure, output));
 
-      final Structure model = readStructure(args[2]);
+      final Structure model = readStructure(parsed_args.getOptionValue("target"));
       rotateAndShift(model, output.superimposer);
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)
@@ -117,7 +133,7 @@ public class App {
       final StringBuilder refModelSuperimpositionStringBuilder = new StringBuilder();
       refModelSuperimpositionStringBuilder.append(
           "MODEL        1                                              \n");
-      final Structure reference = readStructure(args[1]);
+      final Structure reference = readStructure(parsed_args.getOptionValue("reference"));
       refModelSuperimpositionStringBuilder.append(reference.toPDB());
       refModelSuperimpositionStringBuilder.append(
           "ENDMDL                                                      \n");
@@ -129,8 +145,8 @@ public class App {
       refModelSuperimpositionStringBuilder.append(
           "END                                                         ");
 
-      final String referenceNameWithoutExtension =
-          FilenameUtils.removeExtension(FilenameUtils.getName(args[1]));
+      final String referenceNameWithoutExtension = FilenameUtils.removeExtension(
+          FilenameUtils.getName(parsed_args.getOptionValue("reference")));
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)
                          .append(referenceNameWithoutExtension)
@@ -142,81 +158,116 @@ public class App {
     }
   }
 
-  private static final File getOutputDirectory(final String[] args) {
-    File outputDirectory = null;
-    if (args.length == 6) {
-      final File userOutputFile = Paths.get(args[5]).toFile();
-      if ((userOutputFile.exists()) && (userOutputFile.isDirectory())) {
-        outputDirectory = userOutputFile;
-      }
-    }
-    if (outputDirectory == null) {
-      final File modelFile = Paths.get(args[2]).toFile();
-      final File modelDirectory = modelFile.getParentFile();
-      if ((modelDirectory.exists()) && (modelDirectory.isDirectory())) {
-        outputDirectory = modelDirectory;
+  private static final File getOutputDirectory(final CommandLine args) {
+    final File path =
+        Paths.get(args.getOptionValue("output", args.getOptionValue("target"))).toFile();
+
+    if (path.exists()) {
+      if (path.isDirectory()) {
+        // Should be 'output' flag.
+        return path;
+      } else {
+        final File targetDir = path.getAbsoluteFile().getParentFile();
+        if (targetDir.exists() && targetDir.isDirectory()) {
+          // Should be 'target' flag. Extract directory from it.
+          return targetDir;
+        }
       }
     }
 
-    if (outputDirectory == null) {
-      LOGGER.error("Output directory must be defined!");
-    }
-    return outputDirectory;
+    LOGGER.error("Output path directory is not a proper folder path");
+    System.exit(3);
+    return null;
   }
 
-  private static final void validateInput(final String[] args, final AlignerConfig _config) {
-    if (args.length < 5 || args.length > 6) {
-      LOGGER.info(
-          "Usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)");
-      LOGGER.info("Provided methods: geometric, genetic");
-      LOGGER.info(
-          "Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.");
-      LOGGER.info(
-          "RMSD threshold: maximal RMSD score of resultant alignment. By default 3.5A is used.");
-      System.exit(1);
-    }
+  private static final CommandLine validateInput(final String[] args) {
+    Options options = new Options();
 
-    if ((StringUtils.equalsIgnoreCase(args[0], "geometric"))
-        || (StringUtils.equalsIgnoreCase(args[0], "genetic"))) {
-      if (!StringUtils.isAllLowerCase(args[0])) {
-        args[0] = StringUtils.lowerCase(args[0]);
-      }
-    } else {
-      LOGGER.warn(String.format("Invalid method: %s", args[0]));
-      LOGGER.warn("By default geometric is used.");
-      args[0] = "geometric";
-    }
+    options.addOption(OptionBuilder.withLongOpt("reference")
+                          .withDescription("Reference structure in .pdb format.")
+                          .hasArg()
+                          .withArgName("reference.pdb")
+                          .isRequired()
+                          .create('r'));
 
-    final File referenceFile = Paths.get(args[1]).toFile();
-    if (!((referenceFile.exists()) && (referenceFile.isFile()))) {
-      LOGGER.error("Reference structure file must be defined!");
-      System.exit(1);
-    }
+    options.addOption(OptionBuilder.withLongOpt("target")
+                          .withDescription("Target structure in .pdb format.")
+                          .hasArg()
+                          .withArgName("target.pdb")
+                          .isRequired()
+                          .create('t'));
 
-    final File modelFile = Paths.get(args[2]).toFile();
-    if (!((modelFile.exists()) && (modelFile.isFile()))) {
-      LOGGER.error("Model file must be defined!");
-      System.exit(1);
-    }
+    options.addOption(
+        OptionBuilder.withLongOpt("output")
+            .withDescription("(optional) Output directory for all results and alignements.\n"
+                + "Default: use directory of target structure")
+            .hasArg()
+            .withArgName("path")
+            .create('o'));
 
-    if ((StringUtils.equalsIgnoreCase(args[3], "seq-dep"))
-        || (StringUtils.equalsIgnoreCase(args[3], "seq-indep"))) {
-      if (!StringUtils.isAllLowerCase(args[3])) {
-        args[3] = StringUtils.lowerCase(args[3]);
-      }
-    } else {
-      LOGGER.warn(String.format("Invalid aligning mode: %s", args[3]));
-      LOGGER.warn("By default seq-dep is used.");
-      args[3] = "seq-dep";
-    }
+    options.addOption(OptionBuilder.withLongOpt("method")
+                          .withDescription("(optional) Method used to align input structures.\n"
+                              + "Available: geometric, genetic\n"
+                              + "Default: geometric")
+                          .hasArg()
+                          .withArgName("method")
+                          .create('m'));
+
+    options.addOption(
+        OptionBuilder.withLongOpt("mode")
+            .withDescription("(optional) Aligning mode used with each method. Can be either "
+                + "sequence independent or sequence dependent\n"
+                + "Available: seq-indep, seq-dep\n"
+                + "Default: seq-indep")
+            .hasArg()
+            .withArgName("aligning-mode")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("rmsd")
+            .withDescription("(optional) Maximum RMSD (in Ångström) that the aligned fragment will "
+                + "not exceed.\n"
+                + "Default: 3.5")
+            .hasArg()
+            .withType(Float.class)
+            .withArgName("rmsd")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("time-limit")
+            .withDescription("(optional) Maximum execution time in seconds before program returns. "
+                + "Execution time can be well below set value if no improvements are found for long "
+                + "time.\n"
+                + "Default: 300")
+            .hasArg()
+            .withType(Integer.class)
+            .withArgName("seconds")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("threads")
+            .withDescription("(optional) Number of threads used by algoritm. Easy way to speedup "
+                + "the processing.\n"
+                + "Default: all system threads")
+            .hasArg()
+            .withType(Integer.class)
+            .withArgName("threads")
+            .create());
+
+    CommandLineParser parser = new DefaultParser();
+    HelpFormatter formatter = new HelpFormatter();
+    CommandLine cmd = null;
 
     try {
-      Double.parseDouble(StringUtils.trim(args[4]));
-    } catch (Exception e) {
-      LOGGER.warn(String.format("Invalid RMSD threshold: %s", args[4]));
-      LOGGER.warn("By default 3.5A is used.");
-      args[4] = String.valueOf(_config.rmsdLimit);
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      LOGGER.error(e.getMessage());
+      formatter.printHelp(100,
+          "java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]", "", options, "");
+      System.exit(1);
     }
+
+    return cmd;
   }
 
   private static final Structure readStructure(final String path) {

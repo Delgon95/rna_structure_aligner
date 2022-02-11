@@ -4,7 +4,7 @@ public class AlignerConfig {
   // General config.
   public double rmsdLimit = 3.5;
   // Number of threads used for calculations.
-  public int threads = 12;
+  public int threads = 6;
   // Break calculations after (300) seconds and return AlignerOutput.
   public double returnTime = 300;
 

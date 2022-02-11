@@ -19,23 +19,39 @@ Java 11 + Maven 3.6.3
 
 # Usage
 
+RNA Hugs is a command line application, which requires to be provided
+with:
 
-RNA Hugs (3D structure aligner) is a command line applications, which requires to be provided with:
--   method - One of the 2 available methods: `geometric` or `genetic`
--   reference.pdb - Path to the reference structure used for alignment.
--   target.pdb - Path to target structure that we want to alight on the reference structure.
--   aligning-mode - `seq-indep` or `seq-dep` - Defaults to `seq-dep`
--   rmsd-threshold - Maximum RMSD (in **Å**ngström) that the aligned fragment will not exceed. Defaults to 3.5A
--   output-directory - Target directory for aligned output and alignment infomration. Default is location target.pdb location.
+-   `--reference` and the path to reference PDB file.
+-   `--target` and the path to target PDB file.
 
 
-`java -jar rnahugs.jar geometric example/1/1_solution_0A_rpr.pdb example/1/testA_rpr.pdb seq-indep 3.5 example/1/`
+```
+java -jar target/rna-hugs-1.1-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
 
-
-    Usage: <method> <reference.pdb> <target.pdb> <aligning-mode> <rmsd-threshold> <output-directory> (optional)
-    Provided methods: geometric, genetic
-    Provided aligning modes: sequence-dependent (seq-dep), sequence-independent (seq-indep). By default sequence-dependent is used.
-    RMSD threshold: maximal RMSD score of resultant alignment. By default 3.5A is used.
+usage: RNA Hugs
+ -m,--method <method>             (optional) Method used to align input structures.
+                                  Available: geometric, genetic
+                                  Default: geometric
+    --mode <aligning-mode>        (optional) Aligning mode used with each method. Can be either
+                                  sequence independent or sequence dependent
+                                  Available: seq-indep, seq-dep
+                                  Default: seq-indep
+ -o,--output <path>               (optional) Output directory for all results and alignements.
+                                  Default: use directory of target structure.
+ -r,--reference <reference.pdb>   Reference structure in .pdb format.
+    --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
+                                  will not exceed.
+                                  Default: 3.5
+ -t,--target <target.pdb>         Target structure in .pdb format.
+    --threads <threads>           (optional) Number of threads used by algoritm. Easy way to speedup
+                                  the processing.
+                                  Default: all system threads
+    --time-limit <seconds>        (optional) Maximum execution time in seconds before program
+                                  returns. Execution time can be well below set value if no
+                                  improvements are found for long time.
+                                  Default: 300
+```
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used  outside of this project!.**
 
@@ -53,7 +69,7 @@ Both algorithms be further configured and fine adjusted. Configs are located in 
 
 Explanation of more important config parameters.
 
-### Generic
+### General
     threads              - Number of threads used by algoritm. Easy way to speedup the processing.
     rmsdLimit            - Maximum RMSD of the aligned structure fragment. 
                            Same as 'rmsd-threshold' when using the program.

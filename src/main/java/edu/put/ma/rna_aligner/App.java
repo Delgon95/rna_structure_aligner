@@ -38,6 +38,13 @@ public class App {
       config.returnTime = Integer.parseInt(parsed_args.getOptionValue("time-limit", "300"));
       config.threads = Integer.parseInt(
           parsed_args.getOptionValue("threads", Integer.toString(Thread.activeCount())));
+      // Geometric specific
+      config.pairRmsdLimit = Double.parseDouble(parsed_args.getOptionValue("pair-rmsd", "0.65"));
+      config.tripleRmsdLimit =
+          Double.parseDouble(parsed_args.getOptionValue("triple-rmsd", "1.00"));
+      // Genetic specific
+      config.geometricPopulation = parsed_args.hasOption("geometric-pop");
+      config.populationSize = Integer.parseInt(parsed_args.getOptionValue("pop-size", "200"));
     } catch (NumberFormatException e) {
       LOGGER.error(e.getMessage());
       System.exit(2);
@@ -252,6 +259,43 @@ public class App {
             .hasArg()
             .withType(Integer.class)
             .withArgName("threads")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("pair-rmsd")
+            .withDescription("(optional) Maximum RMSD (in Ångström) that cores with 2 nucleotides "
+                + "will not exceed. Increase leads to wider and longer search. Must be lower or "
+                + "equal to triple-rmsd.\n"
+                + "Default: 0.65")
+            .hasArg()
+            .withType(Float.class)
+            .withArgName("rmsd")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("triple-rmsd")
+            .withDescription("(optional) Maximum RMSD (in Ångström) that cores with 3 nucleotides "
+                + "will not exceed. Increase leads to wider and longer search. Must be higher or "
+                + "equal to pair-rmsd.\n"
+                + "Default: 1.0")
+            .hasArg()
+            .withType(Float.class)
+            .withArgName("rmsd")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("pop-size")
+            .withDescription("(optional) Population size for each generation and thread\n"
+                + "Default: 200")
+            .hasArg()
+            .withType(Integer.class)
+            .withArgName("size")
+            .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("geometric-pop")
+            .withDescription("(optional) Generate initial population using first results obrained "
+                + "from the geometric algorithm.\n")
             .create());
 
     CommandLineParser parser = new DefaultParser();

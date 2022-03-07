@@ -12,7 +12,7 @@ function run_rnahugs() {
 
   FOLDER="${3}_${4}"
   rm -r "${FOLDER}" 2>/dev/null ; mkdir "${FOLDER}" 2>/dev/null
-  java -jar ${JAR} -r ${REF} -t ${TARGET} --method ${3} --mode ${4} --rmsd ${5} -o "${FOLDER}"
+  java -jar ${JAR} -r ${REF} -t ${TARGET} -method ${3} --mode ${4} --rmsd ${5} -o "${FOLDER}"
   cat ${FOLDER}/*-output.txt ; echo
 
 }

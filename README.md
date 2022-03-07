@@ -27,9 +27,11 @@ with:
 
 
 ```
-java -jar target/rna-hugs-1.0-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
+java -jar target/rna-hugs-X.Y-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
 
 usage: RNA Hugs
+    --geometric-pop               (optional) Generate initial population using first results
+                                  obrained from the geometric algorithm.
  -m,--method <method>             (optional) Method used to align input structures.
                                   Available: geometric, genetic
                                   Default: geometric
@@ -38,7 +40,13 @@ usage: RNA Hugs
                                   Available: seq-indep, seq-dep
                                   Default: seq-indep
  -o,--output <path>               (optional) Output directory for all results and alignements.
-                                  Default: use directory of target structure.
+                                  Default: use directory of target structure
+    --pair-rmsd <rmsd>            (optional) Maximum RMSD (in Ångström) that cores with 2
+                                  nucleotides will not exceed. Increase leads to wider and longer
+                                  search. Must be lower or equal to triple-rmsd.
+                                  Default: 0.65
+    --pop-size <size>             (optional) Population size for each generation and thread
+                                  Default: 200
  -r,--reference <reference.pdb>   Reference structure in .pdb format.
     --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
                                   will not exceed.
@@ -51,6 +59,10 @@ usage: RNA Hugs
                                   returns. Execution time can be well below set value if no
                                   improvements are found for long time.
                                   Default: 300
+    --triple-rmsd <rmsd>          (optional) Maximum RMSD (in Ångström) that cores with 3
+                                  nucleotides will not exceed. Increase leads to wider and longer
+                                  search. Must be higher or equal to pair-rmsd.
+                                  Default: 1.0
 ```
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used  outside of this project!.**
@@ -106,6 +118,15 @@ To compare results and performance of different methods and aligning modes pleas
     ./run_examples.sh
     
 Binaries obtained from running `./build.sh` are required to run examples script.
+
+## RNAPuzzle 01 - DAS 3 (blue - aligned, red - not aligned) imposed over solution (green)
+![](rnapuzzle_01_aligned_das3.png)
+
+## RNAPuzzle 03 - DAS 5 (blue - aligned, red - not aligned) imposed over solution (green)
+![](rnapuzzle_03_aligned_das5.png)
+
+## RNAPuzzle 04 - Adamiak 4 (blue - aligned, red - not aligned) imposed over solution (green)
+![](rnapuzzle_04_aligned_adamiak4.png)
 
 
 # Output 

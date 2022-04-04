@@ -205,7 +205,7 @@ public class App {
     options.addOption(
         OptionBuilder.withLongOpt("input-format")
             .withDescription(
-                "(optional) Format type of both input structures. Auto allows for different 
+                "(optional) Format type of both input structures. Auto allows for different "
                 + "formats between target and reference\n"
                 + "Available: auto, pdb, cif\n"
                 + "Default: auto")

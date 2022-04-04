@@ -28,7 +28,6 @@ import org.biojava.nbio.structure.io.PDBFileReader;
 import org.biojava.nbio.structure.jama.Matrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import pl.poznan.put.pdb.PdbAtomLine;
 import pl.poznan.put.pdb.analysis.CifModel;
 import pl.poznan.put.pdb.analysis.CifParser;
@@ -67,15 +66,13 @@ public class App {
 
     // Parse PDB and create default coarse-grained structures.
     final StructureParser parser = new StructureParser();
-    final ArrayList<Nucleotide> referenceStructure =
-            parser.StructureToCoarseGrained(parsed_args.getOptionValue("reference"),
-            		parsed_args.getOptionValue("pop-size", "auto"), 
-            		parsed_args.hasOption("allow-incomplete"));
-    final ArrayList<Nucleotide> targetStructure =
-            parser.StructureToCoarseGrained(parsed_args.getOptionValue("target"),
-            		parsed_args.getOptionValue("pop-size", "auto"),
-            		parsed_args.hasOption("allow-incomplete"));
-    
+    final ArrayList<Nucleotide> referenceStructure = parser.StructureToCoarseGrained(
+        parsed_args.getOptionValue("reference"), parsed_args.getOptionValue("pop-size", "auto"),
+        parsed_args.hasOption("allow-incomplete"));
+    final ArrayList<Nucleotide> targetStructure = parser.StructureToCoarseGrained(
+        parsed_args.getOptionValue("target"), parsed_args.getOptionValue("pop-size", "auto"),
+        parsed_args.hasOption("allow-incomplete"));
+
     // Aligner function input: config, coarse-grained RNA structures.
 
     final boolean isSequenceDependent =
@@ -144,24 +141,22 @@ public class App {
                          .append("-sequence-alignment.txt")
                          .toString(),
           getAlignment(referenceStructure, targetStructure, output));
-      
-      ImmutableDefaultPdbModel model = getRotatedStructure(
-    		  parsed_args.getOptionValue("target"),
-    		  parsed_args.getOptionValue("pop-size", "auto"),
-    		  output.superimposer);
+
+      ImmutableDefaultPdbModel model = getRotatedStructure(parsed_args.getOptionValue("target"),
+          parsed_args.getOptionValue("pop-size", "auto"), output.superimposer);
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)
                          .append(modelNameWithoutExtension)
                          .append("-superimposed.pdb")
                          .toString(),
-                         model.toPdb());
-      
+          model.toPdb());
+
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
-              .append(File.separator)
-              .append(modelNameWithoutExtension)
-              .append("-superimposed.cif")
-              .toString(),
-              model.toCif());
+                         .append(File.separator)
+                         .append(modelNameWithoutExtension)
+                         .append("-superimposed.cif")
+                         .toString(),
+          model.toCif());
     }
   }
 
@@ -187,31 +182,36 @@ public class App {
     return null;
   }
 
-
-private static final CommandLine validateInput(final String[] args) {
+  private static final CommandLine validateInput(final String[] args) {
     Options options = new Options();
 
-    options.addOption(OptionBuilder.withLongOpt("reference")
-                          .withDescription("Reference structure in .pdb/.cif format. Can force format with --input-format")
-                          .hasArg()
-                          .withArgName("reference.pdb")
-                          .isRequired()
-                          .create('r'));
-
-    options.addOption(OptionBuilder.withLongOpt("target")
-                          .withDescription("Target structure in .pdb/.cif format. Can force format with --input-format")
-                          .hasArg()
-                          .withArgName("target.pdb")
-                          .isRequired()
-                          .create('t'));
     options.addOption(
-            OptionBuilder.withLongOpt("input-format")
-                .withDescription("(optional) Format type of both input structures. Auto allows for different formats between target and reference\n"
-                	+ "Available: auto, pdb, cif\n"
-                    + "Default: auto")
-                .hasArg()
-                .withArgName("format")
-                .create());
+        OptionBuilder.withLongOpt("reference")
+            .withDescription(
+                "Reference structure in .pdb/.cif format. Can force format with --input-format")
+            .hasArg()
+            .withArgName("reference.pdb")
+            .isRequired()
+            .create('r'));
+
+    options.addOption(
+        OptionBuilder.withLongOpt("target")
+            .withDescription(
+                "Target structure in .pdb/.cif format. Can force format with --input-format")
+            .hasArg()
+            .withArgName("target.pdb")
+            .isRequired()
+            .create('t'));
+    options.addOption(
+        OptionBuilder.withLongOpt("input-format")
+            .withDescription(
+                "(optional) Format type of both input structures. Auto allows for different 
+                + "formats between target and reference\n"
+                + "Available: auto, pdb, cif\n"
+                + "Default: auto")
+            .hasArg()
+            .withArgName("format")
+            .create());
 
     options.addOption(
         OptionBuilder.withLongOpt("output")
@@ -306,14 +306,13 @@ private static final CommandLine validateInput(final String[] args) {
             .withDescription("(optional) Generate initial population using first results obrained "
                 + "from the geometric algorithm.\n")
             .create());
-    
-    options.addOption(
-            OptionBuilder.withLongOpt("allow-incomplete")
-                .withDescription("(optional) Allow usage of incomplete atoms in coarse-grained "
-                    + "structure creation. By default, all of the atoms specified in the code"
-                    + "are required to include molecule in calculations.\n")
-                .create());
 
+    options.addOption(
+        OptionBuilder.withLongOpt("allow-incomplete")
+            .withDescription("(optional) Allow usage of incomplete atoms in coarse-grained "
+                + "structure creation. By default, all of the atoms specified in the code"
+                + "are required to include molecule in calculations.\n")
+            .create());
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -331,41 +330,40 @@ private static final CommandLine validateInput(final String[] args) {
     return cmd;
   }
 
-private static final ImmutableDefaultPdbModel getRotatedStructure(final String path, final String inputType,
-		final Superimposer superimposer) {
-	final ResidueCollection originalModel =  readStructure(path, inputType);
-	final List<PdbAtomLine> shiftedAtoms = getRotatedAndShifted(originalModel, superimposer);
-	return ImmutableDefaultPdbModel.copyOf((DefaultPdbModel)originalModel).withAtoms(shiftedAtoms);
-}
+  private static final ImmutableDefaultPdbModel getRotatedStructure(
+      final String path, final String inputType, final Superimposer superimposer) {
+    final ResidueCollection originalModel = readStructure(path, inputType);
+    final List<PdbAtomLine> shiftedAtoms = getRotatedAndShifted(originalModel, superimposer);
+    return ImmutableDefaultPdbModel.copyOf((DefaultPdbModel) originalModel).withAtoms(shiftedAtoms);
+  }
 
   private static final ResidueCollection readStructure(final String path, final String inputType) {
-		boolean isPdb = true;
-		
-	    final File file =  new File(path);
-	    try {
-			final String structureContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-			
-			if (inputType == "auto") {
-				// Try Detect if the file is mmCIF or PDB.
-				// Search for _loop in the file. If it is present we can assume it is CIF format.
-				if (structureContent.indexOf("_loop") != -1) {
-					isPdb = false;
-				} // else remains isPdb = true;
-			} else if (inputType == "cif") {
-				isPdb = false;
-			} // else remains isPdb = true;
+    boolean isPdb = true;
 
-			
-			    // parse the data
-			    final PdbParser pdbParser = new PdbParser(false);
-			    final List<PdbModel> pdbModels = (isPdb) ? pdbParser.parse(structureContent) : null;
-			    final List<CifModel> cifModels = (!isPdb) ? CifParser.parse(structureContent) : null;
-			    
-			    return (isPdb) ? pdbModels.get(0) : cifModels.get(0);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    return null;
+    final File file = new File(path);
+    try {
+      final String structureContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+      if (inputType == "auto") {
+        // Try Detect if the file is mmCIF or PDB.
+        // Search for _loop in the file. If it is present we can assume it is CIF format.
+        if (structureContent.indexOf("_loop") != -1) {
+          isPdb = false;
+        } // else remains isPdb = true;
+      } else if (inputType == "cif") {
+        isPdb = false;
+      } // else remains isPdb = true;
+
+      // parse the data
+      final PdbParser pdbParser = new PdbParser(false);
+      final List<PdbModel> pdbModels = (isPdb) ? pdbParser.parse(structureContent) : null;
+      final List<CifModel> cifModels = (!isPdb) ? CifParser.parse(structureContent) : null;
+
+      return (isPdb) ? pdbModels.get(0) : cifModels.get(0);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   private static final void saveDataToFile(final String outputPath, final String data) {
@@ -377,20 +375,21 @@ private static final ImmutableDefaultPdbModel getRotatedStructure(final String p
   }
 
   private static List<PdbAtomLine> getRotatedAndShifted(
-    ResidueCollection structure, final Superimposer superimposer) {
+      ResidueCollection structure, final Superimposer superimposer) {
     List<PdbAtomLine> shiftedAtoms = new ArrayList<PdbAtomLine>();
 
     for (PdbResidue residue : structure.residues()) {
       for (PdbAtomLine atom : residue.atoms()) {
-    	  shiftedAtoms.add(rotateAndShiftAtom(atom, superimposer));
+        shiftedAtoms.add(rotateAndShiftAtom(atom, superimposer));
       }
     }
 
     return shiftedAtoms;
   }
 
-  private static final PdbAtomLine rotateAndShiftAtom(PdbAtomLine atom, final Superimposer superimposer) {
-	org.biojava.nbio.structure.Atom bioJavaAtom = atom.toBioJavaAtom();
+  private static final PdbAtomLine rotateAndShiftAtom(
+      PdbAtomLine atom, final Superimposer superimposer) {
+    org.biojava.nbio.structure.Atom bioJavaAtom = atom.toBioJavaAtom();
     Calc.rotate(bioJavaAtom, superimposer.getRotation());
     shift(bioJavaAtom, superimposer.translation);
     return PdbAtomLine.fromBioJavaAtom(bioJavaAtom);

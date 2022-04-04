@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import static java.util.Map.entry;    
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +37,46 @@ public class StructureParser {
       new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"));
   private static final ArrayList<String> G_atoms =
       new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"));
+  
+  private static final Map<String, String> modified_3to1 = Map.ofEntries(
+		  entry("A23", "A"), entry( "A2L", "A"), entry( "A2M", "A"), entry( "A39", "A"), entry(
+                  "A3P", "A"), entry( "A44", "A"), entry( "A5O", "A"), entry( "A6A", "A"), entry( "A7E", "A"), entry( "A9Z", "A"), entry(
+                  "ADI", "A"), entry( "ADP", "A"), entry( "AET", "A"), entry( "AMD", "A"), entry( "AMO", "A"), entry( "AP7", "A"), entry(
+                  "AVC", "A"), entry( "MA6", "A"), entry( "MAD", "A"), entry( "MGQ", "A"), entry( "MIA", "A"), entry( "MTU", "A"), entry(
+                  "M7A", "A"), entry( "26A", "A"), entry( "2MA", "A"), entry( "6IA", "A"), entry( "6MA", "A"), entry( "6MC", "A"), entry(
+                  "6MP", "A"), entry( "6MT", "A"), entry( "6MZ", "A"), entry( "6NW", "A"), entry( "F3N", "A"), entry( "N79", "A"), entry(
+                  "RIA", "A"), entry( "V3L", "A"), entry( "ZAD", "A"), entry( "31H", "A"), entry( "31M", "A"), entry( "7AT", "A"), entry(
+                  "O2Z", "A"), entry( "SRA", "A"), entry( "00A", "A"), entry( "45A", "A"), entry( "8AN", "A"), entry( "LCA", "A"), entry(
+                  "P5P", "A"), entry( "PPU", "A"), entry( "PR5", "A"), entry( "PU", "A"), entry( "T6A", "A"), entry( "TBN", "A"), entry(
+                  "TXD", "A"), entry( "TXP", "A"), entry( "12A", "A"), entry( "1MA", "A"), entry( "5FA", "A"), entry( "A6G", "G"), entry(
+                  "E6G", "G"), entry( "E7G", "G"), entry( "EQ4", "G"), entry( "IG", "G"), entry( "IMP", "G"), entry( "M2G", "G"), entry(
+                  "MGT", "G"), entry( "MGV", "G"), entry( "MHG", "G"), entry( "QUO", "G"), entry( "YG", "G"), entry( "YYG", "G"), entry(
+                  "23G", "G"), entry( "2EG", "G"), entry( "2MG", "G"), entry( "2SG", "G"), entry( "B8K", "G"), entry( "B8W", "G"), entry(
+                  "B9B", "G"), entry( "BGH", "G"), entry( "N6G", "G"), entry( "RFJ", "G"), entry( "ZGU", "G"), entry( "7MG", "G"), entry(
+                  "CG1", "G"), entry( "G1G", "G"), entry( "G25", "G"), entry( "G2L", "G"), entry( "G46", "G"), entry( "G48", "G"), entry(
+                  "G7M", "G"), entry( "GAO", "G"), entry( "GDO", "G"), entry( "GDP", "G"), entry( "GH3", "G"), entry( "GNG", "G"), entry(
+                  "GOM", "G"), entry( "GRB", "G"), entry( "GTP", "G"), entry( "KAG", "G"), entry( "KAK", "G"), entry( "O2G", "G"), entry(
+                  "OMG", "G"), entry( "8AA", "G"), entry( "8OS", "G"), entry( "LG", "G"), entry( "PGP", "G"), entry( "P7G", "G"), entry(
+                  "TPG", "G"), entry( "TG", "G"), entry( "XTS", "G"), entry( "102", "G"), entry( "18M", "G"), entry( "1MG", "G"), entry(
+                  "A5M", "C"), entry( "A6C", "C"), entry( "E3C", "C"), entry( "IC", "C"), entry( "M4C", "C"), entry( "M5M", "C"), entry(
+                  "6OO", "C"), entry( "B8Q", "C"), entry( "B8T", "C"), entry( "B9H", "C"), entry( "JMH", "C"), entry( "N5M", "C"), entry(
+                  "RPC", "C"), entry( "RSP", "C"), entry( "RSQ", "C"), entry( "ZBC", "C"), entry( "ZCY", "C"), entry( "73W", "C"), entry(
+                  "C25", "C"), entry( "C2L", "C"), entry( "C31", "C"), entry( "C43", "C"), entry( "C5L", "C"), entry( "CBV", "C"), entry(
+                  "CCC", "C"), entry( "CH", "C"), entry( "CSF", "C"), entry( "OMC", "C"), entry( "S4C", "C"), entry( "4OC", "C"), entry(
+                  "LC", "C"), entry( "LHH", "C"), entry( "LV2", "C"), entry( "PMT", "C"), entry( "TC", "C"), entry( "10C", "C"), entry(
+                  "1SC", "C"), entry( "5HM", "C"), entry( "5IC", "C"), entry( "5MC", "C"), entry( "A6U", "U"), entry( "IU", "U"), entry(
+                  "I4U", "U"), entry( "MEP", "U"), entry( "MNU", "U"), entry( "U25", "U"), entry( "U2L", "U"), entry( "U2P", "U"), entry(
+                  "U31", "U"), entry( "U34", "U"), entry( "U36", "U"), entry( "U37", "U"), entry( "U8U", "U"), entry( "UAR", "U"), entry(
+                  "UBB", "U"), entry( "UBD", "U"), entry( "UD5", "U"), entry( "UPV", "U"), entry( "UR3", "U"), entry( "URD", "U"), entry(
+                  "US5", "U"), entry( "UZR", "U"), entry( "UMO", "U"), entry( "U23", "U"), entry( "2AU", "U"), entry( "2MU", "U"), entry(
+                  "2OM", "U"), entry( "B8H", "U"), entry( "FHU", "U"), entry( "FNU", "U"), entry( "F2T", "U"), entry( "RUS", "U"), entry(
+                  "ZBU", "U"), entry( "3AU", "U"), entry( "3ME", "U"), entry( "3MU", "U"), entry( "3TD", "U"), entry( "70U", "U"), entry(
+                  "75B", "U"), entry( "CNU", "U"), entry( "OMU", "U"), entry( "ONE", "U"), entry( "S4U", "U"), entry( "SSU", "U"), entry(
+                  "SUR", "U"), entry( "4SU", "U"), entry( "85Y", "U"), entry( "DHU", "U"), entry( "H2U", "U"), entry( "LHU", "U"), entry(
+                  "PSU", "U"), entry( "PYO", "U"), entry( "P4U", "U"), entry( "T31", "U"), entry( "125", "U"), entry( "126", "U"), entry(
+                  "127", "U"), entry( "1RN", "U"), entry( "5BU", "U"), entry( "5FU", "U"), entry( "5MU", "U"), entry( "9QV", "U"), entry(
+                  "5GP", "G")
+	);
 
   
   public ArrayList<Nucleotide> StructureToCoarseGrained(final String filename, final String inputType,
@@ -259,6 +301,8 @@ public class StructureParser {
       return "G";
     } else if (StringUtils.endsWithIgnoreCase(resName, "A")) {
       return "A";
+    } else if (modified_3to1.containsKey(resName.toUpperCase())) {
+      return modified_3to1.get(resName.toUpperCase());
     }
     return "";
     //throw new IllegalArgumentException(String.format("Only ADE, GUA, CYT, URI|URA are supported. Provided %s", resName));

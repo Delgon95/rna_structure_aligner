@@ -29,9 +29,16 @@ with:
 ```
 java -jar target/rna-hugs-X.Y-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
 
-usage: RNA Hugs
+usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
+    --allow-incomplete            (optional) Allow usage of incomplete atoms in coarse-grained
+                                  structure creation. By default, all of the atoms specified in the
+                                  code are required to include molecule in calculations.
     --geometric-pop               (optional) Generate initial population using first results
                                   obrained from the geometric algorithm.
+    --input-format <format>       (optional) Format type of both input structures. Auto allows for
+                                  different formats between target and reference
+                                  Available: auto, pdb, cif
+                                  Default: auto
  -m,--method <method>             (optional) Method used to align input structures.
                                   Available: geometric, genetic
                                   Default: geometric
@@ -47,11 +54,13 @@ usage: RNA Hugs
                                   Default: 0.65
     --pop-size <size>             (optional) Population size for each generation and thread
                                   Default: 200
- -r,--reference <reference.pdb>   Reference structure in .pdb format.
+ -r,--reference <reference.pdb>   Reference structure in .pdb/.cif format. Can force format with
+                                  --input-format
     --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
                                   will not exceed.
                                   Default: 3.5
- -t,--target <target.pdb>         Target structure in .pdb format.
+ -t,--target <target.pdb>         Target structure in .pdb/.cif format. Can force format with
+                                  --input-format
     --threads <threads>           (optional) Number of threads used by algoritm. Easy way to speedup
                                   the processing.
                                   Default: all system threads

@@ -310,7 +310,7 @@ public class App {
     options.addOption(
         OptionBuilder.withLongOpt("allow-incomplete")
             .withDescription("(optional) Allow usage of incomplete atoms in coarse-grained "
-                + "structure creation. By default, all of the atoms specified in the code"
+                + "structure creation. By default, all of the atoms specified in the code "
                 + "are required to include molecule in calculations.\n")
             .create());
 

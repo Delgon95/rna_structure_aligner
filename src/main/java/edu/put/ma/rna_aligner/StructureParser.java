@@ -37,7 +37,8 @@ public class StructureParser {
       new ArrayList<String>(Arrays.asList("N9", "C8", "N7", "C5", "C6", "N1", "C2", "N3", "C4"));
 
   
-  public ArrayList<Nucleotide> StructureToCoarseGrained(final String filename, final String inputType) {
+  public ArrayList<Nucleotide> StructureToCoarseGrained(final String filename, final String inputType,
+		  final boolean allowIncomplete) {
 	ArrayList<Nucleotide> result = new ArrayList<Nucleotide>();  
 	boolean isPdb = true;
 	
@@ -118,15 +119,15 @@ public class StructureParser {
 		                      new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 		                  result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
 		                } else {
-		  		          if (bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
+		  		          if (allowIncomplete && bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
 		  			          final ArrayList<Coordinates> grained =
 		  			              new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 		  			          result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
-		  			          }
 		                  LOGGER.warn(String.format("%s %s.", restCounter, rest_atoms.size()));
 		                  LOGGER.warn(String.format("%s %s.", rbgcCounter, ryboze_atoms.size()));
 		                  LOGGER.warn(String.format("%s %s.", bsgcCounter, getBaseAtomsCount(currentResidueName)));
 		                  LOGGER.warn(String.format("Incomplete residue %s.", currentAtomKey));
+		  			      }
 		                }
 		                // Reset
 		                currentAtomKey = key;
@@ -202,15 +203,15 @@ public class StructureParser {
 		              new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 		          result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
 		        } else {
-		          if (bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
+		          if (allowIncomplete && bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
 		          final ArrayList<Coordinates> grained =
 		              new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
 		          result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
-		          }
 		          LOGGER.warn(String.format("%s %s.", restCounter, rest_atoms.size()));
 		          LOGGER.warn(String.format("%s %s.", rbgcCounter, ryboze_atoms.size()));
 		          LOGGER.warn(String.format("%s %s.", bsgcCounter, getBaseAtomsCount(currentResidueName)));
 		          LOGGER.warn(String.format("Incomplete residue %s.", currentAtomKey));
+		          }
 		        }
 		    }
 	} catch (IOException e) {
@@ -220,7 +221,7 @@ public class StructureParser {
     // We can try and run the parser again with different parse type.
     if (result.size() == 0 && inputType == "auto") {
       LOGGER.warn("Parsed structure without any atoms to analyze. Trying another type pdb/cif instead.");
-      return (isPdb) ? StructureToCoarseGrained(filename, "cif") : StructureToCoarseGrained(filename, "pdb");
+      return (isPdb) ? StructureToCoarseGrained(filename, "cif", allowIncomplete) : StructureToCoarseGrained(filename, "pdb", allowIncomplete);
     }  
     
     return result;

@@ -68,9 +68,13 @@ public class App {
     // Parse PDB and create default coarse-grained structures.
     final StructureParser parser = new StructureParser();
     final ArrayList<Nucleotide> referenceStructure =
-            parser.StructureToCoarseGrained(parsed_args.getOptionValue("reference"), parsed_args.getOptionValue("pop-size", "auto"));
+            parser.StructureToCoarseGrained(parsed_args.getOptionValue("reference"),
+            		parsed_args.getOptionValue("pop-size", "auto"), 
+            		parsed_args.hasOption("allow-incomplete"));
     final ArrayList<Nucleotide> targetStructure =
-            parser.StructureToCoarseGrained(parsed_args.getOptionValue("target"), parsed_args.getOptionValue("pop-size", "auto"));
+            parser.StructureToCoarseGrained(parsed_args.getOptionValue("target"),
+            		parsed_args.getOptionValue("pop-size", "auto"),
+            		parsed_args.hasOption("allow-incomplete"));
     
     // Aligner function input: config, coarse-grained RNA structures.
 
@@ -302,6 +306,14 @@ private static final CommandLine validateInput(final String[] args) {
             .withDescription("(optional) Generate initial population using first results obrained "
                 + "from the geometric algorithm.\n")
             .create());
+    
+    options.addOption(
+            OptionBuilder.withLongOpt("allow-incomplete")
+                .withDescription("(optional) Allow usage of incomplete atoms in coarse-grained "
+                    + "structure creation. By default, all of the atoms specified in the code"
+                    + "are required to include molecule in calculations.\n")
+                .create());
+
 
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();

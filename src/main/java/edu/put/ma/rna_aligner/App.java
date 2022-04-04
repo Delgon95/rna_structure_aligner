@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.Thread;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.biojava.nbio.structure.Atom;
@@ -23,8 +25,19 @@ import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
 import org.biojava.nbio.structure.io.PDBFileReader;
+import org.biojava.nbio.structure.jama.Matrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import pl.poznan.put.pdb.PdbAtomLine;
+import pl.poznan.put.pdb.analysis.CifModel;
+import pl.poznan.put.pdb.analysis.CifParser;
+import pl.poznan.put.pdb.analysis.DefaultPdbModel;
+import pl.poznan.put.pdb.analysis.ImmutableDefaultPdbModel;
+import pl.poznan.put.pdb.analysis.PdbModel;
+import pl.poznan.put.pdb.analysis.PdbParser;
+import pl.poznan.put.pdb.analysis.PdbResidue;
+import pl.poznan.put.pdb.analysis.ResidueCollection;
 
 public class App {
   private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -53,12 +66,12 @@ public class App {
     final File outputDirectory = getOutputDirectory(parsed_args);
 
     // Parse PDB and create default coarse-grained structures.
-    final PdbParser parser = new PdbParser();
+    final StructureParser parser = new StructureParser();
     final ArrayList<Nucleotide> referenceStructure =
-        parser.ParsePdbToCoarseGrained(parsed_args.getOptionValue("reference"));
+            parser.StructureToCoarseGrained(parsed_args.getOptionValue("reference"), parsed_args.getOptionValue("pop-size", "auto"));
     final ArrayList<Nucleotide> targetStructure =
-        parser.ParsePdbToCoarseGrained(parsed_args.getOptionValue("target"));
-
+            parser.StructureToCoarseGrained(parsed_args.getOptionValue("target"), parsed_args.getOptionValue("pop-size", "auto"));
+    
     // Aligner function input: config, coarse-grained RNA structures.
 
     final boolean isSequenceDependent =
@@ -127,41 +140,24 @@ public class App {
                          .append("-sequence-alignment.txt")
                          .toString(),
           getAlignment(referenceStructure, targetStructure, output));
-
-      final Structure model = readStructure(parsed_args.getOptionValue("target"));
-      rotateAndShift(model, output.superimposer);
+      
+      ImmutableDefaultPdbModel model = getRotatedStructure(
+    		  parsed_args.getOptionValue("target"),
+    		  parsed_args.getOptionValue("pop-size", "auto"),
+    		  output.superimposer);
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)
                          .append(modelNameWithoutExtension)
                          .append("-superimposed.pdb")
                          .toString(),
-          model.toPDB());
-
-      final StringBuilder refModelSuperimpositionStringBuilder = new StringBuilder();
-      refModelSuperimpositionStringBuilder.append(
-          "MODEL        1                                              \n");
-      final Structure reference = readStructure(parsed_args.getOptionValue("reference"));
-      refModelSuperimpositionStringBuilder.append(reference.toPDB());
-      refModelSuperimpositionStringBuilder.append(
-          "ENDMDL                                                      \n");
-      refModelSuperimpositionStringBuilder.append(
-          "MODEL        2                                              \n");
-      refModelSuperimpositionStringBuilder.append(model.toPDB());
-      refModelSuperimpositionStringBuilder.append(
-          "ENDMDL                                                      \n");
-      refModelSuperimpositionStringBuilder.append(
-          "END                                                         ");
-
-      final String referenceNameWithoutExtension = FilenameUtils.removeExtension(
-          FilenameUtils.getName(parsed_args.getOptionValue("reference")));
+                         model.toPdb());
+      
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
-                         .append(File.separator)
-                         .append(referenceNameWithoutExtension)
-                         .append("-")
-                         .append(modelNameWithoutExtension)
-                         .append("-superimposed.pdb")
-                         .toString(),
-          refModelSuperimpositionStringBuilder.toString());
+              .append(File.separator)
+              .append(modelNameWithoutExtension)
+              .append("-superimposed.cif")
+              .toString(),
+              model.toCif());
     }
   }
 
@@ -187,22 +183,31 @@ public class App {
     return null;
   }
 
-  private static final CommandLine validateInput(final String[] args) {
+
+private static final CommandLine validateInput(final String[] args) {
     Options options = new Options();
 
     options.addOption(OptionBuilder.withLongOpt("reference")
-                          .withDescription("Reference structure in .pdb format.")
+                          .withDescription("Reference structure in .pdb/.cif format. Can force format with --input-format")
                           .hasArg()
                           .withArgName("reference.pdb")
                           .isRequired()
                           .create('r'));
 
     options.addOption(OptionBuilder.withLongOpt("target")
-                          .withDescription("Target structure in .pdb format.")
+                          .withDescription("Target structure in .pdb/.cif format. Can force format with --input-format")
                           .hasArg()
                           .withArgName("target.pdb")
                           .isRequired()
                           .create('t'));
+    options.addOption(
+            OptionBuilder.withLongOpt("input-format")
+                .withDescription("(optional) Format type of both input structures. Auto allows for different formats between target and reference\n"
+                	+ "Available: auto, pdb, cif\n"
+                    + "Default: auto")
+                .hasArg()
+                .withArgName("format")
+                .create());
 
     options.addOption(
         OptionBuilder.withLongOpt("output")
@@ -314,15 +319,41 @@ public class App {
     return cmd;
   }
 
-  private static final Structure readStructure(final String path) {
-    final PDBFileReader reader = new PDBFileReader();
-    Structure structure = null;
-    try (FileInputStream fis = new FileInputStream(path)) {
-      structure = reader.getStructure(fis);
-    } catch (IOException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
-    return structure;
+private static final ImmutableDefaultPdbModel getRotatedStructure(final String path, final String inputType,
+		final Superimposer superimposer) {
+	final ResidueCollection originalModel =  readStructure(path, inputType);
+	final List<PdbAtomLine> shiftedAtoms = getRotatedAndShifted(originalModel, superimposer);
+	return ImmutableDefaultPdbModel.copyOf((DefaultPdbModel)originalModel).withAtoms(shiftedAtoms);
+}
+
+  private static final ResidueCollection readStructure(final String path, final String inputType) {
+		boolean isPdb = true;
+		
+	    final File file =  new File(path);
+	    try {
+			final String structureContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+			
+			if (inputType == "auto") {
+				// Try Detect if the file is mmCIF or PDB.
+				// Search for _loop in the file. If it is present we can assume it is CIF format.
+				if (structureContent.indexOf("_loop") != -1) {
+					isPdb = false;
+				} // else remains isPdb = true;
+			} else if (inputType == "cif") {
+				isPdb = false;
+			} // else remains isPdb = true;
+
+			
+			    // parse the data
+			    final PdbParser pdbParser = new PdbParser(false);
+			    final List<PdbModel> pdbModels = (isPdb) ? pdbParser.parse(structureContent) : null;
+			    final List<CifModel> cifModels = (!isPdb) ? CifParser.parse(structureContent) : null;
+			    
+			    return (isPdb) ? pdbModels.get(0) : cifModels.get(0);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    return null;
   }
 
   private static final void saveDataToFile(final String outputPath, final String data) {
@@ -333,21 +364,24 @@ public class App {
     }
   }
 
-  private static final void rotateAndShift(
-      final Structure structure, final Superimposer superimposer) {
-    final List<Chain> model = structure.getModel(0);
-    for (Chain chain : model) {
-      for (Group residue : chain.getAtomGroups()) {
-        for (org.biojava.nbio.structure.Atom atom : residue.getAtoms()) {
-          rotateAndShiftAtom(atom, superimposer);
-        }
+  private static List<PdbAtomLine> getRotatedAndShifted(
+    ResidueCollection structure, final Superimposer superimposer) {
+    List<PdbAtomLine> shiftedAtoms = new ArrayList<PdbAtomLine>();
+
+    for (PdbResidue residue : structure.residues()) {
+      for (PdbAtomLine atom : residue.atoms()) {
+    	  shiftedAtoms.add(rotateAndShiftAtom(atom, superimposer));
       }
     }
+
+    return shiftedAtoms;
   }
 
-  private static final void rotateAndShiftAtom(final Atom atom, final Superimposer superimposer) {
-    Calc.rotate(atom, superimposer.getRotation());
-    shift(atom, superimposer.translation);
+  private static final PdbAtomLine rotateAndShiftAtom(PdbAtomLine atom, final Superimposer superimposer) {
+	org.biojava.nbio.structure.Atom bioJavaAtom = atom.toBioJavaAtom();
+    Calc.rotate(bioJavaAtom, superimposer.getRotation());
+    shift(bioJavaAtom, superimposer.translation);
+    return PdbAtomLine.fromBioJavaAtom(bioJavaAtom);
   }
 
   public static final void shift(final Atom a, final Coordinates shift) {

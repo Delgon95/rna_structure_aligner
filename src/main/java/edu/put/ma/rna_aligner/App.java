@@ -48,12 +48,11 @@ public class App {
     try {
       config.rmsdLimit = Double.parseDouble(parsed_args.getOptionValue("rmsd", "3.5"));
       config.returnTime = Integer.parseInt(parsed_args.getOptionValue("time-limit", "300"));
-      config.threads = Integer.parseInt(
-          parsed_args.getOptionValue("threads", Integer.toString(Thread.activeCount())));
+      config.threads = Integer.parseInt(parsed_args.getOptionValue(
+          "threads", Integer.toString(Runtime.getRuntime().availableProcessors())));
       // Geometric specific
       config.pairRmsdLimit = Double.parseDouble(parsed_args.getOptionValue("pair-rmsd", "0.65"));
-      config.tripleRmsdLimit =
-          Double.parseDouble(parsed_args.getOptionValue("triple-rmsd", "1.00"));
+      config.tripleRmsdLimit = Double.parseDouble(parsed_args.getOptionValue("triple-rmsd", "1.0"));
       // Genetic specific
       config.geometricPopulation = parsed_args.hasOption("geometric-pop");
       config.populationSize = Integer.parseInt(parsed_args.getOptionValue("pop-size", "200"));

@@ -94,7 +94,7 @@ public class StructureParser {
       if (inputType == "auto") {
         // Try Detect if the file is mmCIF or PDB.
         // Search for _loop in the file. If it is present we can assume it is CIF format.
-        if (structureContent.indexOf("_loop") != -1) {
+        if (structureContent.indexOf("_loop") != -1 || structureContent.indexOf("loop_") != -1) {
           isPdb = false;
         } // else remains isPdb = true;
       } else if (inputType == "cif") {

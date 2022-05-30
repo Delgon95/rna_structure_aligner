@@ -32,6 +32,7 @@ import pl.poznan.put.pdb.PdbAtomLine;
 import pl.poznan.put.pdb.analysis.CifModel;
 import pl.poznan.put.pdb.analysis.CifParser;
 import pl.poznan.put.pdb.analysis.DefaultPdbModel;
+import pl.poznan.put.pdb.analysis.ImmutableDefaultCifModel;
 import pl.poznan.put.pdb.analysis.ImmutableDefaultPdbModel;
 import pl.poznan.put.pdb.analysis.PdbModel;
 import pl.poznan.put.pdb.analysis.PdbParser;
@@ -346,7 +347,7 @@ public class App {
       if (inputType == "auto") {
         // Try Detect if the file is mmCIF or PDB.
         // Search for _loop in the file. If it is present we can assume it is CIF format.
-        if (structureContent.indexOf("_loop") != -1) {
+        if (structureContent.indexOf("_loop") != -1 || structureContent.indexOf("loop_") != -1) {
           isPdb = false;
         } // else remains isPdb = true;
       } else if (inputType == "cif") {
@@ -358,7 +359,7 @@ public class App {
       final List<PdbModel> pdbModels = (isPdb) ? pdbParser.parse(structureContent) : null;
       final List<CifModel> cifModels = (!isPdb) ? CifParser.parse(structureContent) : null;
 
-      return (isPdb) ? pdbModels.get(0) : cifModels.get(0);
+      return (isPdb) ? pdbModels.get(0) : pdbParser.parse(cifModels.get(0).toPdb()).get(0);
     } catch (IOException e) {
       e.printStackTrace();
     }

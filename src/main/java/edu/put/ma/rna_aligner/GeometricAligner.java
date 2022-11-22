@@ -125,9 +125,9 @@ public class GeometricAligner {
 
   private boolean ShouldTerminate() {
     return (System.currentTimeMillis() > stopTime
-        || (bestChainReference.size() == referenceStructure.size())
+        || (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
         || (populationPool.size() > populationSize
-            || (createPopulation && bestChainReference.size() == referenceStructure.size()
+            || (createPopulation && (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
                 && populationPool.size() > config.threads * 3)));
   }
 
@@ -220,8 +220,8 @@ public class GeometricAligner {
   }
 
   private ArrayList<NData> CalculatePairCandidates(final NData ndata, final Dist referenceDistance,
-      final ArrayList<Coordinates> referenceAtoms, final Dist[][] targetDistances,
-      final double minimumRmsd, final double maximumRmsd) {
+      final ArrayList<Coordinates> referenceAtoms,
+      final Dist[][] targetDistances, final double minimumRmsd, final double maximumRmsd) {
     ArrayList<NData> pairCandidates = new ArrayList<NData>();
 
     final double similarityMax =
@@ -231,62 +231,46 @@ public class GeometricAligner {
     ArrayList<Coordinates> targetAtoms2 = new ArrayList<Coordinates>(
         Arrays.asList(new Coordinates[targetStructure.get(0).representatives.size() * 2]));
 
-    if (isSequenceDependent) {
-      final double similarity =
-          Dist.Similarity(referenceDistance, targetDistances[ndata.index1][ndata.index2]);
-      if (similarity <= similarityMax) {
-        NucleotidesToAtoms(targetAtoms1, ndata.index1, ndata.index2, targetStructure);
-        // Calculate real RMSD with best rotation and shift.
-        // Does not change targetAtoms.
-        Superimposer superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms1);
-        double rmsd = Calculations.CalculateRMSD(referenceAtoms, targetAtoms1, superimposer);
-
-        if (rmsd >= minimumRmsd && rmsd <= maximumRmsd) {
-          pairCandidates.add(new NData(ndata.index1, ndata.index2, rmsd, superimposer));
-        }
-      }
-    } else {
       for (int i = 0; i < targetDistances.length; i++) {
         for (int j = i + 1; j < targetDistances.length; j++) {
-          final double similarity = Dist.Similarity(referenceDistance, targetDistances[i][j]);
-          // Here rmsdLimit != similarity metric as some calculations were omitted from calculations
-          // for speed and moved to similarityMax variable.
-          if (similarity <= similarityMax) {
-            // if ((StringUtils.equalsIgnoreCase(targetStructure.get(i).getCode(),
-            // referenceStructure.get(ndata.index1).getCode())) &&
-            //				(StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
-            // referenceStructure.get(ndata.index2).getCode()))) {
-            NucleotidesToAtoms(targetAtoms1, i, j, targetStructure);
-            // Calculate real RMSD with best rotation and shift.
-            // Does not change targetAtoms.
-            Superimposer superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms1);
-            final double rmsd =
-                Calculations.CalculateRMSD(referenceAtoms, targetAtoms1, superimposer);
+         final boolean ij = ((StringUtils.equalsIgnoreCase(targetStructure.get(i).getCode(),
+             referenceStructure.get(ndata.index1).getCode())) &&
+            				(StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
+             referenceStructure.get(ndata.index2).getCode())));
+         final boolean ji = ((StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
+             referenceStructure.get(ndata.index1).getCode())) &&
+            				(StringUtils.equalsIgnoreCase(targetStructure.get(i).getCode(),
+             referenceStructure.get(ndata.index2).getCode())));
+         if (!isSequenceDependent || (ij || ji)) {
 
-            if (rmsd >= minimumRmsd && rmsd <= maximumRmsd) {
-              pairCandidates.add(new NData(i, j, rmsd, superimposer));
+            final double similarity = Dist.Similarity(referenceDistance, targetDistances[i][j]);
+            // Here rmsdLimit != similarity metric as some calculations were omitted from calculations
+            // for speed and moved to similarityMax variable.
+            if (similarity <= similarityMax) {
+              NucleotidesToAtoms(targetAtoms1, i, j, targetStructure);
+              // Calculate real RMSD with best rotation and shift.
+              // Does not change targetAtoms.
+              Superimposer superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms1);
+              final double rmsd =
+                  Calculations.CalculateRMSD(referenceAtoms, targetAtoms1, superimposer);
+
+              if (rmsd >= minimumRmsd && rmsd <= maximumRmsd && (!isSequenceDependent || ij)) {
+                pairCandidates.add(new NData(i, j, rmsd, superimposer));
+              }
+              NucleotidesToAtoms(targetAtoms2, j, i, targetStructure);
+              // Calculate real RMSD with best rotation and shift.
+              // Does not change targetAtoms.
+              superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms2);
+              final double rmsd2 =
+                  Calculations.CalculateRMSD(referenceAtoms, targetAtoms2, superimposer);
+
+              if (rmsd2 >= minimumRmsd && rmsd2 <= maximumRmsd && (!isSequenceDependent || ji)) {
+                pairCandidates.add(new NData(j, i, rmsd2, superimposer));
+              }
             }
-            //}
-
-            // if ((StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
-            // referenceStructure.get(ndata.index1).getCode())) &&
-            //		(StringUtils.equalsIgnoreCase(targetStructure.get(i).getCode(),
-            // referenceStructure.get(ndata.index2).getCode()))) {
-            NucleotidesToAtoms(targetAtoms2, j, i, targetStructure);
-            // Calculate real RMSD with best rotation and shift.
-            // Does not change targetAtoms.
-            superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms2);
-            final double rmsd2 =
-                Calculations.CalculateRMSD(referenceAtoms, targetAtoms2, superimposer);
-
-            if (rmsd2 >= minimumRmsd && rmsd2 <= maximumRmsd) {
-              pairCandidates.add(new NData(j, i, rmsd2, superimposer));
-            }
-            //}
           }
         }
       }
-    }
     return pairCandidates;
   }
 
@@ -323,40 +307,13 @@ public class GeometricAligner {
     final double similarityMax =
         Math.pow(config.tripleRmsdLimit * 3, 2) * referenceStructure.get(0).representatives.size();
 
-    if (isSequenceDependent) {
-      for (int i = 0; i < referenceStructure.size(); i++) {
-        if ((i != ndata.index1) && (i != ndata.index2) && (i != candidate.index1)
-            && (i != candidate.index2)) {
-          NucleotidesToAtoms(referenceAtoms, i, referenceStructure);
-          final double similarity = Dist.Similarity(referenceDistances[ndata.index1][ndata.index2],
-              targetDistances[candidate.index1][candidate.index2],
-              referenceDistances[ndata.index1][i], targetDistances[candidate.index1][i],
-              referenceDistances[ndata.index2][i], targetDistances[candidate.index2][i]);
-          if (similarity < similarityMax) {
-            NucleotidesToAtoms(targetAtoms, i, targetStructure);
-            superimposer = Calculations.FitforTripleRMSD(referenceAtoms, targetAtoms);
-            double miniRmsd = Calculations.CalculateRMSD(referenceAtoms, targetAtoms, superimposer);
-
-            if (miniRmsd < config.tripleRmsdLimit) {
-              triplesCandidates.add(new NData(i, i, miniRmsd, superimposer));
-            } else if (miniRmsd < config.tripleRmsdLimit * 1.15) {
-              superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms);
-              final ArrayList<Coordinates> fitTargetAtoms =
-                  Calculations.MoveAtomsForRMSD(targetAtoms, superimposer);
-              double rmsd = Calculations.CalculateRMSD(referenceAtoms, fitTargetAtoms);
-              if (rmsd < config.tripleRmsdLimit) {
-                triplesCandidates.add(new NData(i, i, rmsd, superimposer));
-              }
-            }
-          }
-        }
-      }
-    } else {
       for (int i = 0; i < referenceStructure.size(); i++) {
         if (i != ndata.index1 && i != ndata.index2) {
           // Fill last (third) nucleotide worth of atoms.
           for (int j = 0; j < targetStructure.size(); j++) {
-            if (j != candidate.index1 && j != candidate.index2) {
+            if (j != candidate.index1 && j != candidate.index2 &&
+            (!isSequenceDependent || ((StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
+             referenceStructure.get(i).getCode()))))) {
               // Fill last (third) nucleotide worth of atoms.
               final double similarity =
                   Dist.Similarity(referenceDistances[ndata.index1][ndata.index2],
@@ -386,7 +343,6 @@ public class GeometricAligner {
           }
         }
       }
-    }
 
     Collections.sort(triplesCandidates, new NDataComparator());
 
@@ -535,6 +491,7 @@ public class GeometricAligner {
       nucleotidesTarget.add(targetStructure.get(chainTarget.get(i)));
     }
 
+
     // Precompute table with RMSD improvements.
     ArrayList<NData> precomputedDistances =
         PrecomputeRmsdChanges(targetStructureMoved, usedReference, usedTarget);
@@ -661,10 +618,8 @@ public class GeometricAligner {
     for (int i = precomputedDistances.size() - 1; i >= 0; --i) {
       NData best = precomputedDistances.get(i);
       if ((usedReference.contains(best.index1) || usedTarget.contains(best.index2))
-          || (((isSequenceDependent) && (best.index1 != best.index2)))) {
-        //||	  ((!isSequenceDependent) &&
-        //		(!StringUtils.equalsIgnoreCase(referenceStructure.get(best.index1).getCode(),
-        // targetStructure.get(best.index2).getCode()))))) {
+          || ((isSequenceDependent && (!StringUtils.equalsIgnoreCase(referenceStructure.get(best.index1).getCode(),
+                                                                      targetStructure.get(best.index2).getCode()))))) {
         precomputedDistances.remove(i);
       } else {
         bestCandidates = best;

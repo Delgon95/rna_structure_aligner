@@ -92,6 +92,7 @@ public class GeneticAligner {
       newSpecimen.refinement();
 
       if ((newSpecimen.getUsedNucleotidesNumber() > 0) && (!new_generation.contains(newSpecimen))) {
+        newSpecimen.calculateRMSD();
         new_generation.add(newSpecimen);
       } else {
         // Repeated specimen. Add one more.
@@ -253,13 +254,13 @@ public class GeneticAligner {
             final double currentRmsd = population.get(0).calculateRMSD();
             final double incorrectlyAlignedResiduesRatio =
                 population.get(0).getIncorrectlyAlignedResiduesRatio();
-            if (((best_incorrectlyAlignedResiduesRatio > incorrectlyAlignedResiduesRatio)
+            if (((!isSequenceDependent || best_incorrectlyAlignedResiduesRatio > incorrectlyAlignedResiduesRatio)
                     && (Double.compare(currentRmsd, rmsdLimit) <= 0))
-                || ((Double.compare(
+                || ((!isSequenceDependent || Double.compare(
                          best_incorrectlyAlignedResiduesRatio, incorrectlyAlignedResiduesRatio)
                         == 0)
                     && (best_size < currentSize) && (Double.compare(currentRmsd, rmsdLimit) <= 0))
-                || ((Double.compare(
+                || ((!isSequenceDependent || Double.compare(
                          best_incorrectlyAlignedResiduesRatio, incorrectlyAlignedResiduesRatio)
                         == 0)
                     && (best_size == currentSize) && (best_rmsd > currentRmsd))) {
@@ -313,9 +314,14 @@ public class GeneticAligner {
 
         try {
           semaphore.acquire();
-          if ((best_rmsd <= rmsdLimit && best_size > bestAlignmentSize)
-              || ((Double.compare(best_size, bestAlignmentSize) == 0)
-                  && (best_rmsd < bestAlignmentRMSD))) {
+          if ((best_rmsd <= rmsdLimit) && ((!isSequenceDependent || best_incorrectlyAlignedResiduesRatio < bestAlignmentIncorrectlyAlignedResiduesRatio) ||
+              ((!isSequenceDependent || Double.compare(best_incorrectlyAlignedResiduesRatio, bestAlignmentIncorrectlyAlignedResiduesRatio) == 0) &&
+               (best_size > bestAlignmentSize)) ||
+              ((!isSequenceDependent || Double.compare(best_incorrectlyAlignedResiduesRatio, bestAlignmentIncorrectlyAlignedResiduesRatio) == 0) &&
+               (best_size == bestAlignmentSize) && (best_rmsd < bestAlignmentRMSD)))) {
+//          if ((best_rmsd <= rmsdLimit && best_size > bestAlignmentSize)
+//              || ((Double.compare(best_size, bestAlignmentSize) == 0)
+//                  && (best_rmsd < bestAlignmentRMSD))) {
             bestAlignmentSize = best_size;
             bestAlignmentRMSD = best_rmsd;
             bestAlignmentIncorrectlyAlignedResiduesRatio = best_incorrectlyAlignedResiduesRatio;
@@ -345,6 +351,7 @@ public class GeneticAligner {
         targetMapping.add(-1);
       }
     }
+
 
     return new AlignerOutput(bestSpecimen.getUsedNucleotidesNumber(), referenceIndexes,
         targetMapping,

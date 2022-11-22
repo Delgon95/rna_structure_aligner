@@ -9,6 +9,43 @@ public class SpecimenComparator implements Comparator<Object> {
     this.rmsd_limit = _rmsd_limit;
   }
 
+/*
+  public int compare(final Object _lhs, final Object _rhs) {
+    final Specimen lhs = (Specimen) _lhs;
+    final Specimen rhs = (Specimen) _rhs;
+
+    if (Double.compare(lhs.calculateRMSD(), rmsd_limit) <= 0
+        && Double.compare(rhs.calculateRMSD(), rmsd_limit) <= 0) {
+      // Both are within range.
+      int iar = Double.compare(lhs.getIncorrectlyAlignedResiduesRatio(), rhs.getIncorrectlyAlignedResiduesRatio());
+      if (iar != 0) {
+        //return iar;
+      }
+      int unn = Integer.compare(lhs.getUsedNucleotidesNumber(), rhs.getUsedNucleotidesNumber());
+      if (unn != 0) {
+        return -unn;
+      }
+      int crmsd = Double.compare(lhs.calculateRMSD(), rhs.calculateRMSD());
+      return crmsd;
+    } else if (Double.compare(lhs.calculateRMSD(), rmsd_limit) >= 0
+        && Double.compare(rhs.calculateRMSD(), rmsd_limit) >= 0) {
+      // Both are within range.
+      int iar = Double.compare(lhs.getIncorrectlyAlignedResiduesRatio(), rhs.getIncorrectlyAlignedResiduesRatio());
+      if (iar != 0) {
+        //return iar;
+      }
+      int unn = Integer.compare(lhs.getUsedNucleotidesNumber(), rhs.getUsedNucleotidesNumber());
+      if (unn != 0) {
+        return -unn;
+      }
+      int crmsd = Double.compare(lhs.calculateRMSD(), rhs.calculateRMSD());
+      return crmsd;
+    } else {
+      int crmsd = Double.compare(lhs.calculateRMSD(), rhs.calculateRMSD());
+      return crmsd;
+    }
+  }
+*/
   public int compare(final Object _lhs, final Object _rhs) {
     final Specimen lhs = (Specimen) _lhs;
     final Specimen rhs = (Specimen) _rhs;
@@ -66,4 +103,5 @@ public class SpecimenComparator implements Comparator<Object> {
       }
     }
   }
+
 }

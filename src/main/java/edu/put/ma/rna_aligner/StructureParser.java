@@ -158,8 +158,11 @@ public class StructureParser {
               restAtom.y = restAtom.y / restCounter;
               restAtom.z = restAtom.z / restCounter;
             }
-            if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size())
-                && (bsgcCounter == getBaseAtomsCount(currentResidueName))) {
+//            if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size())
+//                && (bsgcCounter == getBaseAtomsCount(currentResidueName))) {
+//          Allow incomplete but must be at least one from each
+            if ((restCounter >= 1) && (rbgcCounter >= 1)
+                && (bsgcCounter >= 1 )) {
               ArrayList<Coordinates> grained =
                   new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
               result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
@@ -243,8 +246,10 @@ public class StructureParser {
           restAtom.y = restAtom.y / restCounter;
           restAtom.z = restAtom.z / restCounter;
         }
-        if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size())
-            && (bsgcCounter == getBaseAtomsCount(currentResidueName))) {
+//            if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size())
+//                && (bsgcCounter == getBaseAtomsCount(currentResidueName))) {
+            if ((restCounter >= 1) && (rbgcCounter >= 1)
+                && (bsgcCounter >= 1 )) {
           final ArrayList<Coordinates> grained =
               new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
           result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));

@@ -12,8 +12,9 @@ function run_rnahugs() {
 
   FOLDER="${3}_${4}"
   rm -r "${FOLDER}" 2>/dev/null ; mkdir "${FOLDER}" 2>/dev/null
-  java -jar ${JAR} -r ${REF} -t ${TARGET} -method ${3} --mode ${4} --rmsd ${5} -o "${FOLDER}"
+  java -jar ${JAR} -r ${REF} -t ${TARGET} --method ${3} --mode ${4} --rmsd ${5} -o "${FOLDER}"
   cat ${FOLDER}/*-output.txt ; echo
+  cat ${FOLDER}/*sequence-alignment.txt ; echo
 
 }
 
@@ -34,9 +35,10 @@ echo "Running example 2 cif - Geometric Sequence dependent 3.5A"
 run_rnahugs ${REF} ${TARGET} "geometric" "seq-dep" "3.5"
 
 echo "Running example 2 cif - Genetic Sequence dependent 3.5A"
-run_rnahugs ${REF} ${TARGET} "genetic" "seq-dep" "3.5"
+run_rnahugs ${REF} ${TARGET} "genetic" "seq-dep" "2.5"
 
 popd
+
 
 pushd example/cif/3
 REF="4_0_solution_3V7E_rpr.cif"

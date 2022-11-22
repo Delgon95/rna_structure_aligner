@@ -14,7 +14,7 @@ public class Specimen {
   public final ArrayList<Nucleotide> primaryNucleotides;
   public final ArrayList<Nucleotide> secondaryNucleotides;
 
-  public int max_size;
+  public int min_size;
   public int[] primaryNucleotidesUsed; // 0 if not used, 1 if used.
   public int[] secondaryNucleotidesMap; // number of secondary nucleotide that is associated with
                                         // the same index primary nucleotide.
@@ -42,11 +42,11 @@ public class Specimen {
     isSequenceDependent = _isSequenceDependent;
     primaryNucleotidesUsed = new int[primaryNucleotides.size()];
     secondaryNucleotidesMap = new int[primaryNucleotides.size()];
-    if (primaryNucleotides.size() > secondaryNucleotides.size()) {
-      max_size = primaryNucleotides.size();
-    } else {
-      max_size = secondaryNucleotides.size();
-    }
+    //if (primaryNucleotides.size() < secondaryNucleotides.size()) {
+    //  min_size = primaryNucleotides.size();
+    //} else {
+      min_size = secondaryNucleotides.size();
+    //}
     config = _config;
     singleMutation = config.singleMutation;
     doubleMutation = config.singleMutation + config.doubleMutation;
@@ -95,14 +95,20 @@ public class Specimen {
       int idxRef = chainReference.get(i);
       int idxTar = chainTarget.get(i);
       primaryNucleotidesUsed[idxRef] = 1;
-      int idx = availableNucleotides.indexOf(idxRef);
+      int idx = availableNucleotides.indexOf(idxTar);
       // Should always be >= 0.
       if (idx >= 0) {
         availableNucleotides.remove(idx);
+      } else {
+        System.err.println("idx not in available nucleotidex");
+        System.err.println(idxRef);
+        System.err.println(idxTar);
+        System.err.println(idx);
       }
       secondaryNucleotidesMap[idxRef] = idxTar;
       secondToFirst.put(idxTar, idxRef);
     }
+    calculateRMSD();
   }
 
   public void initialize(int percentage) {
@@ -137,6 +143,7 @@ public class Specimen {
         secondaryNucleotidesMap[i] = -1;
       }
     }
+    calculateRMSD();
   }
 
   private int getRandomAvailable() {
@@ -188,46 +195,18 @@ public class Specimen {
       for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
         if (primaryNucleotidesUsed[i] == 1) {
           final int targetIndex = secondaryNucleotidesMap[i];
-          if ((targetIndex > -1) && (i != targetIndex)) {
+          if ((targetIndex > -1) &&
+              (!StringUtils.equalsIgnoreCase(primaryNucleotides.get(i).getCode(),
+             secondaryNucleotides.get(targetIndex).getCode()))) {
             incorrectlyAlignedResidues++;
           }
         }
       }
-    } else {
-      final int[] idxs = new int[max_size];
-      Arrays.fill(idxs, 0, max_size, -1);
-      for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
-        if (primaryNucleotidesUsed[i] == 1) {
-          final int targetIndex = secondaryNucleotidesMap[i];
-          if ((targetIndex > -1)) {
-            /*&& (!StringUtils.equalsIgnoreCase(primaryNucleotides.get(i).getCode(),
-             * secondaryNucleotides.get(targetIndex).getCode()))*/
-            incorrectlyAlignedResidues++;
-          }
-          idxs[targetIndex] = i;
-        }
-      }
-      if (incorrectlyAlignedResidues == 0) {
-        for (int i = 0; i < idxs.length; i++) {
-          if ((idxs[i] != -1)
-              && (((i - 1 >= 0) && (i + 1 < idxs.length) && (idxs[i - 1] == -1)
-                      && (idxs[i + 1] >= 0) && (Math.abs(idxs[i] - idxs[i + 1]) > 1))
-                  || ((i - 1 >= 0) && (i + 1 < idxs.length) && (idxs[i + 1] == -1)
-                      && (idxs[i - 1] >= 0) && (Math.abs(idxs[i - 1] - idxs[i]) > 1))
-                  || ((i - 1 >= 0) && (i + 1 < idxs.length) && (idxs[i + 1] >= 0)
-                      && (idxs[i - 1] >= 0) && (Math.abs(idxs[i] - idxs[i + 1]) > 1)
-                      && (Math.abs(idxs[i - 1] - idxs[i]) > 1))
-                  || ((i - 1 < 0) && (i + 1 < idxs.length) && (idxs[i + 1] >= 0)
-                      && (Math.abs(idxs[i] - idxs[i + 1]) > 1))
-                  || ((i - 1 >= 0) && (i + 1 >= idxs.length) && (idxs[i - 1] >= 0)
-                      && (Math.abs(idxs[i - 1] - idxs[i]) > 1)))) {
-            incorrectlyAlignedResidues++;
-          }
-        }
-      }
-    }
     incorrectlyAlignedResiduesRatio =
         Precision.round(incorrectlyAlignedResidues * 100.0 / getUsedNucleotidesNumber(), 3);
+    } else {
+    incorrectlyAlignedResiduesRatio = 0;
+    }
   }
 
   public void refinement() {
@@ -288,7 +267,7 @@ public class Specimen {
   }
 
   public int getUsedNucleotidesNumber() {
-    return secondaryNucleotides.size() - availableNucleotides.size();
+    return min_size - availableNucleotides.size();
   }
 
   private void mutate(int variant) {

@@ -2,6 +2,14 @@
 
 Information about the project, results and included algorithms can be found here: [Thesis](https://drive.google.com/open?id=17tl4rKGbjy284WpHZ5hWgyhpB6T08-vA)
 
+The proposed approaches are heuristic algorithms that in practice generate
+suboptimal solutions of expected quality. One of the advantages of GENS is
+that it is able to generate multiple alternative alignments sometimes
+aligning different fragments of considered structures. Otherwise, GEOS is
+a dedicated heuristic that is usually repeatable for the particular pair
+of 3D structures and the given values of configuration parameters, the final
+results can differ depending if time limit was triggered or not.
+
 # Build
 
 Please run:

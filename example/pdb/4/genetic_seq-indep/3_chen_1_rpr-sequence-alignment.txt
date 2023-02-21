@@ -1,6 +1,6 @@
 REF:   CUCUGGAGAGAACCGUUUAAUCGGUCGCCGAAGGAGCAAGCUCUGCGGAAACGCAGAGUGAAACUCUCAGGCAAAAGGAC
-                  || |      ||||||||| |||||||||||| |          ||||||   ||||||||        
-MODEL: -----------GC-A------GUCGCCGAA-GAGCAAGCUCUG-A----------GCAGAG---ACUCUCAG--------
+                 |    ||    ||||||||||||||||||||||||||    ||||||||     |||||||||       
+MODEL: ----------A----UA----CGGUCGCCGAAGGAGCAGCUCUGCGC----AUGCAGAG-----CUCUCAGGC-------
 
 REF:   AGAG
            

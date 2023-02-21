@@ -35,7 +35,7 @@ echo "Running example 2 cif - Geometric Sequence dependent 3.5A"
 run_rnahugs ${REF} ${TARGET} "geometric" "seq-dep" "3.5"
 
 echo "Running example 2 cif - Genetic Sequence dependent 3.5A"
-run_rnahugs ${REF} ${TARGET} "genetic" "seq-dep" "2.5"
+run_rnahugs ${REF} ${TARGET} "genetic" "seq-dep" "3.5"
 
 popd
 

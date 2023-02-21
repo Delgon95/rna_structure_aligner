@@ -32,18 +32,27 @@ public class GeneticAligner {
   private int numberOfPopulationsWithoutImprovement = 0;
   private boolean isSequenceDependent;
   private double rmsdLimit;
+  private boolean areSequencesSwapped = false;
 
   GeneticAligner(final AlignerConfig _config, final ArrayList<Nucleotide> _referenceStructure,
       final ArrayList<Nucleotide> _targetStructure, final boolean _isSequenceDependent,
       final double _rmsdLimit) {
     super();
     config = _config;
-    referenceStructure = _referenceStructure;
-    targetStructure = _targetStructure;
-    isSequenceDependent = _isSequenceDependent;
-    if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size())) {
-      isSequenceDependent = !isSequenceDependent;
+    
+    if (_referenceStructure.size() > _targetStructure.size()) {
+      referenceStructure = _targetStructure;
+      targetStructure = _referenceStructure;
+      areSequencesSwapped = true;
+    } else {
+      referenceStructure = _referenceStructure;
+      targetStructure = _targetStructure;
     }
+    
+    isSequenceDependent = _isSequenceDependent;
+    //if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size())) {
+    //  isSequenceDependent = !isSequenceDependent;
+    //}
     crossChance = config.crossChance;
     mutationChance = config.mutationChance + crossChance;
     newSpecimenChance = config.newSpecimenChance + mutationChance;
@@ -312,16 +321,18 @@ public class GeneticAligner {
           }
         }
 
+
         try {
           semaphore.acquire();
-          if ((best_rmsd <= rmsdLimit) && ((!isSequenceDependent || best_incorrectlyAlignedResiduesRatio < bestAlignmentIncorrectlyAlignedResiduesRatio) ||
+          if ((best_rmsd <= rmsdLimit) && (((!isSequenceDependent || best_incorrectlyAlignedResiduesRatio < bestAlignmentIncorrectlyAlignedResiduesRatio) &&
               ((!isSequenceDependent || Double.compare(best_incorrectlyAlignedResiduesRatio, bestAlignmentIncorrectlyAlignedResiduesRatio) == 0) &&
                (best_size > bestAlignmentSize)) ||
               ((!isSequenceDependent || Double.compare(best_incorrectlyAlignedResiduesRatio, bestAlignmentIncorrectlyAlignedResiduesRatio) == 0) &&
-               (best_size == bestAlignmentSize) && (best_rmsd < bestAlignmentRMSD)))) {
+               (best_size == bestAlignmentSize) && (best_rmsd < bestAlignmentRMSD))))) {
 //          if ((best_rmsd <= rmsdLimit && best_size > bestAlignmentSize)
 //              || ((Double.compare(best_size, bestAlignmentSize) == 0)
 //                  && (best_rmsd < bestAlignmentRMSD))) {
+            System.err.println(best_size + " " + best_rmsd);
             bestAlignmentSize = best_size;
             bestAlignmentRMSD = best_rmsd;
             bestAlignmentIncorrectlyAlignedResiduesRatio = best_incorrectlyAlignedResiduesRatio;
@@ -337,29 +348,54 @@ public class GeneticAligner {
         } finally {
           semaphore.release();
         }
+        if (stopTime - System.currentTimeMillis() < 0 || terminate) {
+          break;
+        }
       }
     });
 
     final ArrayList<Integer> referenceIndexes = new ArrayList<Integer>();
     final ArrayList<Integer> targetMapping = new ArrayList<Integer>();
 
-    for (int i = 0; i < bestSpecimen.primaryNucleotidesUsed.length; ++i) {
-      referenceIndexes.add(i);
-      if (bestSpecimen.primaryNucleotidesUsed[i] == 1) {
-        targetMapping.add(bestSpecimen.secondaryNucleotidesMap[i]);
-      } else {
+    if (!areSequencesSwapped) {
+      for (int i = 0; i < bestSpecimen.primaryNucleotidesUsed.length; ++i) {
+        referenceIndexes.add(i);
+        if (bestSpecimen.primaryNucleotidesUsed[i] == 1) {
+          targetMapping.add(bestSpecimen.secondaryNucleotidesMap[i]);
+        } else {
+          targetMapping.add(-1);
+        }
+      }
+
+      return new AlignerOutput(bestSpecimen.getUsedNucleotidesNumber(), referenceIndexes,
+          targetMapping,
+          Calculations.FitForRMSD(Nucleotide.NucleotidesToListMapped(bestSpecimen.primaryNucleotides,
+                                      bestSpecimen.primaryNucleotidesUsed, true),
+              Nucleotide.NucleotidesToListMapped(
+                  bestSpecimen.secondaryNucleotides, bestSpecimen.secondaryNucleotidesMap, false)),
+          System.currentTimeMillis() - globalStart, bestAlignmentRMSD);
+    } else {
+      // We swapped primary and secondary to unify a way everything works.
+      // Now we have to "unswap" the resulting final specimen.
+      for (int i = 0; i < bestSpecimen.secondaryNucleotides.size(); ++i) {
+        referenceIndexes.add(i);
         targetMapping.add(-1);
       }
-    }
+      for (int i = 0; i < bestSpecimen.primaryNucleotidesUsed.length; ++i) {
+        if (bestSpecimen.primaryNucleotidesUsed[i] == 1) {
+          targetMapping.set(bestSpecimen.secondaryNucleotidesMap[i], i);
+        }
+      }
 
-
-    return new AlignerOutput(bestSpecimen.getUsedNucleotidesNumber(), referenceIndexes,
-        targetMapping,
-        Calculations.FitForRMSD(Nucleotide.NucleotidesToListMapped(bestSpecimen.primaryNucleotides,
-                                    bestSpecimen.primaryNucleotidesUsed, true),
-            Nucleotide.NucleotidesToListMapped(
-                bestSpecimen.secondaryNucleotides, bestSpecimen.secondaryNucleotidesMap, false)),
-        System.currentTimeMillis() - globalStart, bestAlignmentRMSD);
+      return new AlignerOutput(bestSpecimen.getUsedNucleotidesNumber(), referenceIndexes,
+          targetMapping,
+          Calculations.FitForRMSD(
+              Nucleotide.NucleotidesToListMapped(
+                  bestSpecimen.secondaryNucleotides, bestSpecimen.secondaryNucleotidesMap, false),
+            Nucleotide.NucleotidesToListMapped(bestSpecimen.primaryNucleotides,
+                                      bestSpecimen.primaryNucleotidesUsed, true)),
+          System.currentTimeMillis() - globalStart, bestAlignmentRMSD);
+      }
   }
 
   private final void updatePopulationsNumber(final boolean init) {

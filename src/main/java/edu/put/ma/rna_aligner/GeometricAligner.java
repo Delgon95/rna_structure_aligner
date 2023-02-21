@@ -41,8 +41,8 @@ public class GeometricAligner {
     referenceStructure = _referenceStructure;
     targetStructure = _targetStructure;
     isSequenceDependent = _isSequenceDependent;
-    if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size()))
-      isSequenceDependent = !isSequenceDependent;
+    //if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size()))
+    //  isSequenceDependent = !isSequenceDependent;
     rmsdLimit = _rmsdLimit;
     stopTime = (long) ((globalStart + (1000 * config.returnTime * 0.25)));
   }

@@ -37,16 +37,17 @@ public class Specimen {
   Specimen(final AlignerConfig _config, final ArrayList<Nucleotide> _primaryNucleotides,
       final ArrayList<Nucleotide> _secondaryNucleotides, final boolean _isSequenceDependent) {
     super();
-    primaryNucleotides = _primaryNucleotides;
-    secondaryNucleotides = _secondaryNucleotides;
+    if (_primaryNucleotides.size() > _secondaryNucleotides.size()) {
+      secondaryNucleotides = _primaryNucleotides;
+      primaryNucleotides = _secondaryNucleotides;
+    } else {
+      primaryNucleotides = _primaryNucleotides;
+      secondaryNucleotides = _secondaryNucleotides;
+    }
     isSequenceDependent = _isSequenceDependent;
     primaryNucleotidesUsed = new int[primaryNucleotides.size()];
     secondaryNucleotidesMap = new int[primaryNucleotides.size()];
-    //if (primaryNucleotides.size() < secondaryNucleotides.size()) {
-    //  min_size = primaryNucleotides.size();
-    //} else {
-      min_size = secondaryNucleotides.size();
-    //}
+    
     config = _config;
     singleMutation = config.singleMutation;
     doubleMutation = config.singleMutation + config.doubleMutation;
@@ -95,7 +96,7 @@ public class Specimen {
       int idxRef = chainReference.get(i);
       int idxTar = chainTarget.get(i);
       primaryNucleotidesUsed[idxRef] = 1;
-      int idx = availableNucleotides.indexOf(idxTar);
+      int idx = availableNucleotides.indexOf(idxRef);
       // Should always be >= 0.
       if (idx >= 0) {
         availableNucleotides.remove(idx);
@@ -205,7 +206,7 @@ public class Specimen {
     incorrectlyAlignedResiduesRatio =
         Precision.round(incorrectlyAlignedResidues * 100.0 / getUsedNucleotidesNumber(), 3);
     } else {
-    incorrectlyAlignedResiduesRatio = 0;
+      incorrectlyAlignedResiduesRatio = 0;
     }
   }
 
@@ -267,8 +268,18 @@ public class Specimen {
   }
 
   public int getUsedNucleotidesNumber() {
+    return secondaryNucleotides.size() - availableNucleotides.size();
+  }
+
+/*
+  public int getRemainingNucleotidesNumber() {
+    return availableNucleotides.size();
+  }
+
+  public int getUsedNucleotidesNumber() {
     return min_size - availableNucleotides.size();
   }
+*/
 
   private void mutate(int variant) {
     switch (variant) {

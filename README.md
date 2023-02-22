@@ -136,6 +136,11 @@ To compare results and performance of different methods and aligning modes pleas
     
 Binaries obtained from running `./build.sh` are required to run examples script.
 
+Note: The results can vary from run to run. The GEOS results should vary slightly at most
+as time limit is the only limiting factor here that can change if the search of the whole 
+space was finished or now. The GENS result can differe more, positively and negatively,
+due to nondeterministic nature of metaheuristic algorithm and randomness.
+
 Visualization of example alignments done using PyMOL.
 
 Examples show model structure superimposed over target structure. 

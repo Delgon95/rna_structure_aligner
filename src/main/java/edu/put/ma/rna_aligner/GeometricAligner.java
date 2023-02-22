@@ -124,7 +124,7 @@ public class GeometricAligner {
   }
 
   private boolean ShouldTerminate() {
-    return (System.currentTimeMillis() > stopTime
+    return (((config.returnTime * 1000 - (System.currentTimeMillis() - globalStart)) < 0) || (bestChainReference.size() > 0 && System.currentTimeMillis() > stopTime)
         || (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
         || (populationPool.size() > populationSize
             || (createPopulation && (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())

@@ -140,16 +140,29 @@ public class GeneticAligner {
       long st = System.currentTimeMillis();
       AlignerConfig conf_tmp = new AlignerConfig();
       conf_tmp.rmsdLimit = config.rmsdLimit;
-      conf_tmp.returnTime = 30;
+      conf_tmp.returnTime = 90;
       conf_tmp.waitBufferPercentage = 0.75;
       conf_tmp.waitBufferFlat = 20;
       conf_tmp.imprResultFlat = 15;
       conf_tmp.imprRmsdFlat = 6;
 
+      conf_tmp.pairRmsdLimit = config.pairRmsdLimit / 2.0;
+      conf_tmp.tripleRmsdLimit = config.tripleRmsdLimit / 2.0;
+
+
       conf_tmp.threads = config.threads;
       GeometricAligner aligner = new GeometricAligner(
           conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
       ArrayList<Specimen> res = aligner.createPopulation(populationSize);
+
+      if (res.size() == 0) {
+      conf_tmp.pairRmsdLimit = config.pairRmsdLimit;
+      conf_tmp.tripleRmsdLimit = config.tripleRmsdLimit;
+
+        GeometricAligner aligner2 = new GeometricAligner(
+            conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
+        res = aligner2.createPopulation(populationSize);
+      }
       // stopTime = (long) ((System.currentTimeMillis() + (1000 * config.returnTime * 0.2)));
 
       updateStopTime(true);

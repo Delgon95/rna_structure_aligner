@@ -148,6 +148,31 @@ public class Specimen {
   }
 
   private int getRandomAvailable() {
+    int chance = rand.nextInt(100);
+    if (promisingNucleotides.size() > 0 && chance > 75) {
+      final int index = rand.nextInt(promisingNucleotides.size());
+      final int value = promisingNucleotides.get(index);
+      promisingNucleotides.remove(index);
+      availableNucleotides.remove(Integer.valueOf(value));
+      return value;
+    } else if (availableNucleotides.size() > 0) {
+      final int index = rand.nextInt(availableNucleotides.size());
+      final int value = availableNucleotides.get(index);
+      availableNucleotides.remove(index);
+      final Integer leftNeighbour = Integer.valueOf(value - 1);
+      if ((!promisingNucleotides.contains(leftNeighbour))
+          && (availableNucleotides.contains(leftNeighbour))) {
+        promisingNucleotides.add(leftNeighbour);
+      }
+      final Integer rightNeighbour = Integer.valueOf(value + 1);
+      if ((!promisingNucleotides.contains(rightNeighbour))
+          && (availableNucleotides.contains(rightNeighbour))) {
+        promisingNucleotides.add(rightNeighbour);
+      }
+      return value;
+    }
+    return -1;
+    /*
     if (availableNucleotides.size() > 0) {
       int index = rand.nextInt(availableNucleotides.size());
       int value = availableNucleotides.get(index);
@@ -156,6 +181,7 @@ public class Specimen {
     } else {
       return -1;
     }
+    */
     /*
     if (promisingNucleotides.size() > 0) {
       final int index = rand.nextInt(promisingNucleotides.size());

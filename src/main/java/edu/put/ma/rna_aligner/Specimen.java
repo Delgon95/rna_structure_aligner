@@ -148,7 +148,7 @@ public class Specimen {
   }
 
   private int getRandomAvailable() {
-    if (avalialbeNucleotides.size() > 0) {
+    if (availableNucleotides.size() > 0) {
       int index = rand.nextInt(availableNucleotides.size());
       int value = availableNucleotides.get(index);
       availableNucleotides.remove(index);

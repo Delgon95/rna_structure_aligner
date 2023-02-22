@@ -140,14 +140,14 @@ public class GeneticAligner {
       long st = System.currentTimeMillis();
       AlignerConfig conf_tmp = new AlignerConfig();
       conf_tmp.rmsdLimit = config.rmsdLimit;
-      conf_tmp.returnTime = 90;
+      conf_tmp.returnTime = config.returnTime * 0.75;
       conf_tmp.waitBufferPercentage = 0.75;
       conf_tmp.waitBufferFlat = 20;
       conf_tmp.imprResultFlat = 15;
       conf_tmp.imprRmsdFlat = 6;
 
-      conf_tmp.pairRmsdLimit = config.pairRmsdLimit / 2.0;
-      conf_tmp.tripleRmsdLimit = config.tripleRmsdLimit / 2.0;
+      conf_tmp.pairRmsdLimit = config.pairRmsdLimit;
+      conf_tmp.tripleRmsdLimit = config.tripleRmsdLimit;
 
 
       conf_tmp.threads = config.threads;
@@ -155,14 +155,6 @@ public class GeneticAligner {
           conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
       ArrayList<Specimen> res = aligner.createPopulation(populationSize);
 
-      if (res.size() == 0) {
-      conf_tmp.pairRmsdLimit = config.pairRmsdLimit;
-      conf_tmp.tripleRmsdLimit = config.tripleRmsdLimit;
-
-        GeometricAligner aligner2 = new GeometricAligner(
-            conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
-        res = aligner2.createPopulation(populationSize);
-      }
       // stopTime = (long) ((System.currentTimeMillis() + (1000 * config.returnTime * 0.2)));
 
       updateStopTime(true);
@@ -184,10 +176,13 @@ public class GeneticAligner {
 
       while (!terminate && (System.currentTimeMillis() < stopTime)) {
         ArrayList<Specimen> population = new ArrayList<Specimen>();
+        
+
+
         // Create initial population
         if (config.geometricPopulation) {
-          for (int i = index * config.populationSize; i < (index + 1) * config.populationSize;
-               ++i) {
+          // Divide geometric population "equally"
+          for (int i = index; i < populationPool.size(); i += config.threads) {
             Specimen spec;
             if (populationPool.size() > i) {
               spec = (Specimen) populationPool.get(i).clone();
@@ -208,6 +203,29 @@ public class GeneticAligner {
               spec.calculateRMSD();
               population.add(spec);
             }
+          }
+          // If population is not full, fill it.
+          if (population.size() < config.populationSize) {
+            int lacking = config.populationSize - population.size();
+            for (int i = 0; i < lacking; ++i) {
+              Specimen spec;
+              // Geometric did not produce enough specimens. Select random one.
+              spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+              spec.initialize(rand.nextInt(85) + 5);
+              spec.refinement();
+              int count = 0;
+              while (spec.getUsedNucleotidesNumber() <= 1 && count < 20) {
+                spec =
+                    new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+                spec.initialize(rand.nextInt(85) + 5);
+                spec.refinement();
+              }
+              if (!population.contains(spec)) {
+                spec.calculateRMSD();
+                population.add(spec);
+              }
+            }
+
           }
         } else {
           int count = 0;

@@ -556,6 +556,7 @@ public class GeometricAligner {
     // Finished adding nucleotides to the structure.
     try {
       final Specimen spec;
+      semaphore.acquire();
       if (createPopulation) {
         spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
         spec.initialize(chainReference, chainTarget);
@@ -565,7 +566,6 @@ public class GeometricAligner {
       } else {
         spec = null;
       }
-      semaphore.acquire();
       // New alignment clearly better.
       if ((bestChainReference.size() <= chainReference.size())
           || ((bestChainReference.size() == chainReference.size()) && (bestRmsd > currentRmsd))) {

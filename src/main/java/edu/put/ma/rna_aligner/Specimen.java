@@ -148,6 +148,15 @@ public class Specimen {
   }
 
   private int getRandomAvailable() {
+    if (avalialbeNucleotides.size() > 0) {
+      int index = rand.nextInt(availableNucleotides.size());
+      int value = availableNucleotides.get(index);
+      availableNucleotides.remove(index);
+      return value;
+    } else {
+      return -1;
+    }
+    /*
     if (promisingNucleotides.size() > 0) {
       final int index = rand.nextInt(promisingNucleotides.size());
       final int value = promisingNucleotides.get(index);
@@ -171,6 +180,7 @@ public class Specimen {
       return value;
     }
     return -1;
+    */
   }
 
   public double calculateRMSD() {

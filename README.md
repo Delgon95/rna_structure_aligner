@@ -1,14 +1,14 @@
-# RNA Structure Aligner
+# RNA Structure Aligner - **RNA Hugs**
 
-Information about the project, results and included algorithms can be found here: [Thesis](https://drive.google.com/open?id=17tl4rKGbjy284WpHZ5hWgyhpB6T08-vA)
+Information about the project, results, and included algorithms can be found here: [Thesis](https://drive.google.com/open?id=17tl4rKGbjy284WpHZ5hWgyhpB6T08-vA)
 
 The proposed approaches are heuristic algorithms that in practice generate
 suboptimal solutions of expected quality. One of the advantages of GENS is
-that it is able to generate multiple alternative alignments sometimes
+that it can generate multiple alternative alignments sometimes
 aligning different fragments of considered structures. Otherwise, GEOS is
 a dedicated heuristic that is usually repeatable for the particular pair
 of 3D structures and the given values of configuration parameters, the final
-results can differ depending if time limit was triggered or not.
+results can differ depending on if the time limit was triggered or not.
 
 # Build
 
@@ -82,19 +82,19 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
                                   Default: 1.0
 ```
 
-**Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used  outside of this project!.**
+**Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used outside of this project!**
 
 # Methods
 
 Both methods require coarse-grained structures as an input for alignment!</br>
-Required RMSD and number of threads can be specified in AlignerConfig structure which also contains method-specific configurations.
+Required RMSD and a number of threads can be specified in AlignerConfig structure which also contains method-specific configurations.
 
 - genetic - GeneticAligner, uses genetic metaheuristic, multithreaded. 
-- geometric - GeometricAligner. Strong mathematical roots with greedy expansion of the kernel.
+- geometric - GeometricAligner. Strong mathematical roots with a greedy expansion of the kernel.
 
 # Configuration
 
-Both algorithms be further configured and fine adjusted. Configs are located in `AlignerConfig.java` file / `AlignerConfig` class.
+Both algorithms can be further configured and fine-adjusted. Configs are located in `AlignerConfig.java` file / `AlignerConfig` class.
 
 Explanation of more important config parameters.
 
@@ -108,16 +108,16 @@ Explanation of more important config parameters.
     waitBufferPercentage - Maximum time allowed without improvement to the result.
     waitBufferFlat       - Minimum allowed time without improvement to the result.
 
-### Geometric
+### Geometric (GEOS)
     pairRmsdLimit   - How similar (RMSD) should the dual nucleotide alignments be.
     tripleRmsdLimit - How similar should the triples (full cores) of nucleotide alignments be. 
     dualCoreBatches - How many batches of 2 nucleotide cores should be made.
                       High value means cores will have to be recalculated more times
                       but the overall RAM requirement will decrease.
 
-### Genetic
-    geometricPopulation - Use Geometric method to generate initial population for Genetic.
-                          This can (it can also slow it down) speed up the final result generation.
+### Genetic (GENS)
+    geometricPopulation - Use the Geometric method to generate initial population for Genetic.
+                          This can (can also slow it down) speed up the final result generation.
                           This removes a large portion of randomness which can be detrimental to 
                           generating different results.
     resetThreadTime     - Time without improvement to the population for thread (one population size) to restart
@@ -130,21 +130,21 @@ Explanation of more important config parameters.
 
 # Examples
 
-To compare results and performance of different methods and aligning modes please run:
+To compare the results and performance of different methods and aligning modes please run:
 
     ./run_examples.sh
     
-Binaries obtained from running `./build.sh` are required to run examples script.
+Binaries obtained from running `./build.sh` are required to run the examples script.
 
-Note: The results can vary from run to run. The GEOS results should vary slightly at most
-as time limit is the only limiting factor here that can change if the search of the whole 
-space was finished or now. The GENS result can differe more, positively and negatively,
-due to nondeterministic nature of metaheuristic algorithm and randomness.
+**Note:** The results can vary from run to run. The GEOS results should vary slightly at most
+as the time limit is the only limiting factor here that can change if the search of the whole 
+space was finished or now. The GENS result can differ more, positively and negatively,
+due to the nondeterministic nature of the metaheuristic algorithm and randomness.
 
-Visualization of example alignments done using PyMOL.
+Visualizations of example alignments were done using PyMOL.
 
 Examples show model structure superimposed over target structure. 
-Presented result use sequence independent mode of geometric algorithm with 3.5 RMSD cutoff.
+Presented result use sequence independent mode of the geometric (GEOS) algorithm with a 3.5 RMSD cutoff.
 
 Blue - Aligned fragment of the model structure.
 
@@ -496,7 +496,7 @@ A126 	<->	A126
 # Output 
 Both methods output AlignerOutput structure.
 
-- **aligned** - How many nucleotides were aligned within RMSD limit.
+- **aligned** - How many nucleotides were aligned within the RMSD limit.
 - **referenceIndexes** - Indexes of the reference structure that were used for the alignment.
 - **targetMapping** - Indexes of the target structure to which were reference structure was mapped. Index *i-th* nucleotide in **referenceIndexes** is linked to the *i-th* nucleotide in **targetMapping**.
-- **superimposer** - Superimposer structure. It contains final shift and rotation matrices that can be used to align the whole structure. Main structure and required functions were rewritten from BioJava SVDSuperimposer implementation to enable more lightweight 'Coordinates' structure instead of 'Atom'.
+- **superimposer** - Superimposer structure. It contains final shift and rotation matrices that can be used to align the whole structure. Main structure and required functions were rewritten from BioJava SVDSuperimposer implementation to enable a more lightweight 'Coordinates' structure instead of 'Atom'.

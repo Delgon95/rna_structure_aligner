@@ -10,6 +10,12 @@ a dedicated heuristic that is usually repeatable for the particular pair
 of 3D structures and the given values of configuration parameters, the final
 results can differ depending on if the time limit was triggered or not.
 
+GENS performs better for similar structures and therefore finds better use
+in the alignment of distant homologs or various models of the same structure. 
+
+GEOS is better for structures that differ significantly, so, we recommend it
+for the problem of finding maximal common substructures.
+
 # Build
 
 Please run:
@@ -65,8 +71,9 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
  -r,--reference <reference.pdb>   Reference structure in .pdb/.cif format. Can force format with
                                   --input-format
     --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
-                                  will not exceed.
+                                  will not exceed. Must be a positive number.
                                   Default: 3.5
+                                  Recommended: 0-20
  -t,--target <target.pdb>         Target structure in .pdb/.cif format. Can force format with
                                   --input-format
     --threads <threads>           (optional) Number of threads used by algoritm. Easy way to speedup
@@ -84,13 +91,38 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used outside of this project!**
 
+## Remarks
+
+If the user chooses to define the threshold as input parameter (`--rmsd
+option`), any positive value can be given. The threshold value represents
+the quality of alignment expected by the user (or more precisely, the
+upper limit of the value). So if the user is interested in an alignment
+with an accuracy of 2Å (or better), this is the value that should be given
+as input. And if the user looks for an alignment with RMSD<=10Å, the
+threshold should be 10Å. In theory, any positive value is correct.
+However, we recommend the threshold not greater than 20Å, as alignments
+with RMSD>20Å do not seem sensible. The threshold value affects the length
+of the alignment found. Both algorithms maximize the length of alignment
+within the given threshold; if two alignments have the same length (within
+the same RMSD threshold), the one with a smaller RMSD is returned. In
+general, the smaller the threshold, the shorter the alignment, especially
+if the structures being compared differ significantly. This is closely
+related to the properties of RMSD.
+
+By giving the option to define the threshold, we enable experimenting with
+our algorithms. Users can tradeoff between the number of aligned residues
+and the quality of the resultant alignment, as well as the input RMSD
+threshold. We suggest doing it iteratively by starting with the default
+value of the RMSD threshold (3.5Å) and then increasing/decreasing it if
+the number of aligned residues is smaller/bigger than expected.
+
 # Methods
 
 Both methods require coarse-grained structures as an input for alignment!</br>
 Required RMSD and a number of threads can be specified in AlignerConfig structure which also contains method-specific configurations.
 
-- genetic - GeneticAligner, uses genetic metaheuristic, multithreaded. 
-- geometric - GeometricAligner. Strong mathematical roots with a greedy expansion of the kernel.
+- genetic - GENS, GeneticAligner, uses genetic metaheuristic, multithreaded. 
+- geometric - GEOS, GeometricAligner. Strong mathematical roots with a greedy expansion of the kernel.
 
 # Configuration
 
@@ -144,7 +176,7 @@ due to the nondeterministic nature of the metaheuristic algorithm and randomness
 Visualizations of example alignments were done using PyMOL.
 
 Examples show model structure superimposed over target structure. 
-Presented result use sequence independent mode of the geometric (GEOS) algorithm with a 3.5 RMSD cutoff.
+Presented result use sequence independent mode of the geometric (GEOS) algorithm with a 3.5Å RMSD cutoff.
 
 Blue - Aligned fragment of the model structure.
 

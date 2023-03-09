@@ -28,6 +28,7 @@ public class GeometricAligner {
   private double rmsdLimit;
   private long globalStart = System.currentTimeMillis();
   private long stopTime;
+  private boolean respectOrder = false;
 
   private boolean createPopulation = false;
   private int populationSize = 0;
@@ -35,12 +36,13 @@ public class GeometricAligner {
 
   GeometricAligner(final AlignerConfig _config, final ArrayList<Nucleotide> _referenceStructure,
       final ArrayList<Nucleotide> _targetStructure, final boolean _isSequenceDependent,
-      final double _rmsdLimit) {
+      final double _rmsdLimit, final boolean _respectOrder) {
     super();
     config = _config;
     referenceStructure = _referenceStructure;
     targetStructure = _targetStructure;
     isSequenceDependent = _isSequenceDependent;
+    respectOrder = _respectOrder;
     //if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size()))
     //  isSequenceDependent = !isSequenceDependent;
     rmsdLimit = _rmsdLimit;
@@ -102,8 +104,20 @@ public class GeometricAligner {
   }
 
   private void updateStopTime(Boolean resultImprovement) {
-    // Made an improvement.
     long now = System.currentTimeMillis();
+    if (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size()) {
+      long timeBuffer = stopTime - now;
+      // 1s left, just end it. If more than 5s, shorten it.
+      if (timeBuffer < 1000) {
+        timeBuffer = 0;
+      } else if (timeBuffer > 5000) {
+        timeBuffer = 5000;
+      }
+      stopTime = now + (long) (timeBuffer * 0.95);
+      return;
+    }
+    
+    // Made an improvement.
     long timeLeft = ((long) config.returnTime * 1000) - (now - globalStart);
 
     long timeImprovement = 0;
@@ -125,7 +139,8 @@ public class GeometricAligner {
 
   private boolean ShouldTerminate() {
     return (((config.returnTime * 1000 - (System.currentTimeMillis() - globalStart)) < 0) || (bestChainReference.size() > 0 && System.currentTimeMillis() > stopTime)
-        || (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
+        // Do not end after max chain. Compute for a while more but not a lot. Decrease time with each iteration.
+        // || (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
         || (populationPool.size() > populationSize
             || (createPopulation && (bestChainReference.size() == referenceStructure.size() || bestChainTarget.size() == targetStructure.size())
                 && populationPool.size() > config.threads * 3)));
@@ -167,13 +182,22 @@ public class GeometricAligner {
   }
 
   private Dist[][] CalulateDistances(final ArrayList<Nucleotide> nucleotides) {
+    //long st = System.currentTimeMillis();
     Dist[][] distances = new Dist[nucleotides.size()][nucleotides.size()];
+    //long mid = System.currentTimeMillis();
     for (int i = 0; i < nucleotides.size(); i++) {
       for (int j = i + 1; j < nucleotides.size(); j++) {
         distances[i][j] = new Dist(nucleotides.get(i), nucleotides.get(j));
         distances[j][i] = new Dist(distances[i][j].distances);
       }
     }
+    /*
+    long end = System.currentTimeMillis();
+    System.out.println("CalculateDistandes:\n" +
+        "\tCreate Matrix: " + (mid - st) + "ms" +
+        "\tFill Matrix:   " + (end - mid) + "ms" +
+        "\tEverything:    " + (end - st) + "ms");
+    */
     return distances;
   }
 
@@ -241,7 +265,8 @@ public class GeometricAligner {
              referenceStructure.get(ndata.index1).getCode())) &&
             				(StringUtils.equalsIgnoreCase(targetStructure.get(i).getCode(),
              referenceStructure.get(ndata.index2).getCode())));
-         if (!isSequenceDependent || (ij || ji)) {
+
+         if ((!isSequenceDependent || (ij || ji))) {
 
             final double similarity = Dist.Similarity(referenceDistance, targetDistances[i][j]);
             // Here rmsdLimit != similarity metric as some calculations were omitted from calculations
@@ -257,15 +282,19 @@ public class GeometricAligner {
               if (rmsd >= minimumRmsd && rmsd <= maximumRmsd && (!isSequenceDependent || ij)) {
                 pairCandidates.add(new NData(i, j, rmsd, superimposer));
               }
-              NucleotidesToAtoms(targetAtoms2, j, i, targetStructure);
-              // Calculate real RMSD with best rotation and shift.
-              // Does not change targetAtoms.
-              superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms2);
-              final double rmsd2 =
-                  Calculations.CalculateRMSD(referenceAtoms, targetAtoms2, superimposer);
 
-              if (rmsd2 >= minimumRmsd && rmsd2 <= maximumRmsd && (!isSequenceDependent || ji)) {
-                pairCandidates.add(new NData(j, i, rmsd2, superimposer));
+              // RESPECT CHAIN ORDER! DO NOT ADD j i is guaranteed to be j > i
+              if (!respectOrder) {
+                NucleotidesToAtoms(targetAtoms2, j, i, targetStructure);
+                // Calculate real RMSD with best rotation and shift.
+                // Does not change targetAtoms.
+                superimposer = Calculations.FitForRMSD(referenceAtoms, targetAtoms2);
+                final double rmsd2 =
+                    Calculations.CalculateRMSD(referenceAtoms, targetAtoms2, superimposer);
+
+                if (rmsd2 >= minimumRmsd && rmsd2 <= maximumRmsd && (!isSequenceDependent || ji)) {
+                  pairCandidates.add(new NData(j, i, rmsd2, superimposer));
+                }
               }
             }
           }
@@ -314,6 +343,44 @@ public class GeometricAligner {
             if (j != candidate.index1 && j != candidate.index2 &&
             (!isSequenceDependent || ((StringUtils.equalsIgnoreCase(targetStructure.get(j).getCode(),
              referenceStructure.get(i).getCode()))))) {
+              if (respectOrder) {
+                // Now we know i and j that will be added to the kernel. Check Chain Order properties!
+                // At this point we know that nt1 < nt2 of the kernel so we can quickly determine
+                // location of nt3. That will allow us to check target if it is truly sequential/sorted.
+                // TODO
+                // This section is highly unoptimized and could be significantly improved if some
+                // calculations are moved outside of the fors.
+                if (i > ndata.index2) {
+                  // nt3 is last aka largest
+                  // This means t.nt3 (j) MUST be bigger than t.nt3
+                  if (j < candidate.index2) {
+                    // Incorrect. Skip. First move j to at least t.nt2 as all subsequent are incorrect.
+                    j = candidate.index2;
+                    continue;
+                  }
+                } else if (i > ndata.index1) { 
+                  // nt3 is second aka in between
+                  // This meand t.nt3 (j) must be in between t.nt1 and t.nt2
+                  if (j < candidate.index1) {
+                    // Incorrect. Skip. First move j to at least t.nt1 as all subsequent are incorrect.
+                    j = candidate.index1;
+                    continue;
+                  }
+                  if (j > candidate.index2) {
+                    // Incorrect. Break. Any subsequent for this j will be incorrect. 
+                    break; // continue;
+                  }
+                } else { 
+                  // nt3 is first aka. smallest
+                  // This meand t.nt3 MUST be smaller than t.nt1. t.nt2 is implied coz t.nt1 < t.nt2
+                  if (j > candidate.index1) {
+                    // Incorrect. Break. All are bad. j cannot get smaller.
+                    break;
+                  }
+                }
+              }
+
+
               // Fill last (third) nucleotide worth of atoms.
               final double similarity =
                   Dist.Similarity(referenceDistances[ndata.index1][ndata.index2],
@@ -477,6 +544,60 @@ public class GeometricAligner {
     CalculateTriple(chainReference, chainTarget, targetStructureMoved);
   }
 
+
+  // This assumes that reference and target chain are already properly ordered and 
+  // only checks if addition of candidate is improper!!!
+  private boolean IsOrdered(final ArrayList<Integer> chainReference,
+                            final ArrayList<Integer> chainTarget,
+                            final NData candidate) {
+    // Treat as ordered if respect-order is not set.
+    if (!respectOrder) {
+      return true;
+    }
+    // candidate.nt1 - Reference
+    // candidate.nt2 - Target
+    NData nt_left = new NData(-1, -1);
+    NData nt_right = new NData(Integer.MAX_VALUE, -1);
+    for (int i = 0; i < chainReference.size(); i++) {
+      int ref = chainReference.get(i);
+      int tar = chainTarget.get(i);
+      
+      if (candidate.index1 < ref) {
+        if (ref < nt_right.index1) {
+          nt_right.index1 = ref;
+          nt_right.index2 = tar;
+        }
+      } else if (ref > nt_left.index1) {
+          nt_left.index1 = ref;
+          nt_left.index2 = tar;
+      }
+    }
+    // Candidate IS the left most thing.
+    if (nt_left.index2 == -1) {
+      nt_left = new NData(candidate);
+    }
+    // Candidate IS the right most thing.
+    if (nt_right.index2 == -1) {
+      nt_right = new NData(candidate);
+    }
+
+    /*
+    try {
+      semaphore.acquire();
+      System.out.println("     nt_left\t-\tcandidate\t-\tnt_right");
+      System.out.println("Ref: " + nt_left.index1 + "     \t-\t" + candidate.index1 + "       \t-\t" + nt_right.index1);
+      System.out.println("Tar: " + nt_left.index2 + "     \t-\t" + candidate.index2 + "       \t-\t" + nt_right.index2);
+      System.out.println("Res: " + (nt_left.index2 <= candidate.index2 && nt_right.index2 >= candidate.index2));
+      semaphore.release();
+    } catch (InterruptedException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+    */
+    // Reference nt_left < candidate < nt_right
+    // Target ?
+    return nt_left.index2 <= candidate.index2 && nt_right.index2 >= candidate.index2;
+  }
+
   private void CalculateTriple(ArrayList<Integer> chainReference, ArrayList<Integer> chainTarget,
       ArrayList<Nucleotide> targetStructureMoved) {
     ArrayList<Nucleotide> nucleotidesReference =
@@ -496,8 +617,14 @@ public class GeometricAligner {
     ArrayList<NData> precomputedDistances =
         PrecomputeRmsdChanges(targetStructureMoved, usedReference, usedTarget);
 
+    double rmsdSum = CalculateRmsdSum(chainReference, chainTarget, targetStructureMoved);
     NData bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances,
-        CalculateRmsdSum(chainReference, chainTarget, targetStructureMoved));
+        rmsdSum);
+
+    while (bestCandidates != null && !IsOrdered(chainReference, chainTarget, bestCandidates)) {
+      bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances,
+          rmsdSum);  
+    }
 
     int finalShifted = 2;
 
@@ -512,9 +639,12 @@ public class GeometricAligner {
       if (chainReference.size() == referenceStructure.size())
         break;
 
-      double rmsdSum = CalculateRmsdSum(chainReference, chainTarget, targetStructureMoved);
+      rmsdSum = CalculateRmsdSum(chainReference, chainTarget, targetStructureMoved);
 
       bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances, rmsdSum);
+      while (bestCandidates != null && !IsOrdered(chainReference, chainTarget, bestCandidates)) {
+        bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances, rmsdSum);
+      }
 
       // Could not find new candidate. Try shifting structure. Only once. Only if close to current
       // max. Try to shift only if current structure is close to the current best. Do not shift
@@ -543,8 +673,10 @@ public class GeometricAligner {
 
         precomputedDistances =
             PrecomputeRmsdChanges(targetStructureMoved, usedReference, usedTarget);
-        bestCandidates =
-            FindBestCandidate(usedReference, usedTarget, precomputedDistances, rmsdSum);
+        bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances, rmsdSum);
+        while (bestCandidates != null && !IsOrdered(chainReference, chainTarget, bestCandidates)) {
+          bestCandidates = FindBestCandidate(usedReference, usedTarget, precomputedDistances, rmsdSum);
+        }
       }
     }
 
@@ -558,7 +690,7 @@ public class GeometricAligner {
       final Specimen spec;
       semaphore.acquire();
       if (createPopulation) {
-        spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+        spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
         spec.initialize(chainReference, chainTarget);
         if (populationSize > populationPool.size()) {
           populationPool.add(spec);
@@ -567,12 +699,12 @@ public class GeometricAligner {
         spec = null;
       }
       // New alignment clearly better.
-      if ((bestChainReference.size() <= chainReference.size())
-          || ((bestChainReference.size() == chainReference.size()) && (bestRmsd > currentRmsd))) {
-        updateStopTime(bestChainReference.size() < chainReference.size());
+      final boolean impr = bestChainReference.size() < chainReference.size();
+      if (impr || (bestChainReference.size() == chainReference.size() && bestRmsd > currentRmsd)) {
         bestRmsd = currentRmsd;
         bestChainReference = chainReference;
         bestChainTarget = chainTarget;
+        updateStopTime(impr);
       }
       semaphore.release();
     } catch (InterruptedException e) {

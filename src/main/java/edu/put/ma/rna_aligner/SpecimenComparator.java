@@ -50,6 +50,7 @@ public class SpecimenComparator implements Comparator<Object> {
     final Specimen lhs = (Specimen) _lhs;
     final Specimen rhs = (Specimen) _rhs;
 
+    // Both are within RMSD Limit
     if (Double.compare(lhs.calculateRMSD(), rmsd_limit) <= 0
         && Double.compare(rhs.calculateRMSD(), rmsd_limit) <= 0) {
       if (lhs.getIncorrectlyAlignedResiduesRatio() < rhs.getIncorrectlyAlignedResiduesRatio()) {

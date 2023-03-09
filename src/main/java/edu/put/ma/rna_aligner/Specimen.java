@@ -33,9 +33,11 @@ public class Specimen {
   private int tripleMutation = 10;
   private int quadrupleMutation = 10;
   private boolean isSequenceDependent;
+  private boolean respectOrder;
 
   Specimen(final AlignerConfig _config, final ArrayList<Nucleotide> _primaryNucleotides,
-      final ArrayList<Nucleotide> _secondaryNucleotides, final boolean _isSequenceDependent) {
+      final ArrayList<Nucleotide> _secondaryNucleotides, final boolean _isSequenceDependent,
+      final boolean _respectOrder) {
     super();
     if (_primaryNucleotides.size() > _secondaryNucleotides.size()) {
       secondaryNucleotides = _primaryNucleotides;
@@ -45,6 +47,7 @@ public class Specimen {
       secondaryNucleotides = _secondaryNucleotides;
     }
     isSequenceDependent = _isSequenceDependent;
+    respectOrder = _respectOrder;
     primaryNucleotidesUsed = new int[primaryNucleotides.size()];
     secondaryNucleotidesMap = new int[primaryNucleotides.size()];
     
@@ -59,7 +62,7 @@ public class Specimen {
   @Override
   public Object clone() {
     Specimen copy =
-        new Specimen(config, primaryNucleotides, secondaryNucleotides, isSequenceDependent);
+        new Specimen(config, primaryNucleotides, secondaryNucleotides, isSequenceDependent, respectOrder);
     for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
       copy.primaryNucleotidesUsed[i] = this.primaryNucleotidesUsed[i];
     }
@@ -148,8 +151,7 @@ public class Specimen {
   }
 
   private int getRandomAvailable() {
-    int chance = rand.nextInt(100);
-    if (promisingNucleotides.size() > 0 && chance > 75) {
+    if (promisingNucleotides.size() > 0 && rand.nextInt(100) > 75) {
       final int index = rand.nextInt(promisingNucleotides.size());
       final int value = promisingNucleotides.get(index);
       promisingNucleotides.remove(index);
@@ -161,12 +163,12 @@ public class Specimen {
       availableNucleotides.remove(index);
       final Integer leftNeighbour = Integer.valueOf(value - 1);
       if ((!promisingNucleotides.contains(leftNeighbour))
-          && (availableNucleotides.contains(leftNeighbour))) {
+          && (availableNucleotides.contains(leftNeighbour)) && rand.nextInt(100) > 50) {
         promisingNucleotides.add(leftNeighbour);
       }
       final Integer rightNeighbour = Integer.valueOf(value + 1);
       if ((!promisingNucleotides.contains(rightNeighbour))
-          && (availableNucleotides.contains(rightNeighbour))) {
+          && (availableNucleotides.contains(rightNeighbour)) && rand.nextInt(100) > 50) {
         promisingNucleotides.add(rightNeighbour);
       }
       return value;
@@ -239,11 +241,35 @@ public class Specimen {
           }
         }
       }
+    }
+    // Respect Chain Order
+    // We want to preserver sequential order of aligned nucleotides.
+    // Assuming the first nucleotide is correct and the rest should follow and increase in idx.
+    if (respectOrder) {
+      int curr_idx = -1;
+      for (int i = 0; i < primaryNucleotidesUsed.length; i++) {
+        if (primaryNucleotidesUsed[i] == 1) {
+          final int targetIndex = secondaryNucleotidesMap[i];
+          if (curr_idx == -1 && targetIndex > -1) {
+            curr_idx = targetIndex;
+            // First one is 100% correct.
+            continue;
+          }
+          if (targetIndex > -1) {
+            if (curr_idx > targetIndex) {
+              // We moved backwards!
+              incorrectlyAlignedResidues++;
+            } else {
+              // We need to update the current max in sequence.
+              curr_idx = targetIndex;
+            }
+          }
+        }
+      }
+    }
+
     incorrectlyAlignedResiduesRatio =
         Precision.round(incorrectlyAlignedResidues * 100.0 / getUsedNucleotidesNumber(), 3);
-    } else {
-      incorrectlyAlignedResiduesRatio = 0;
-    }
   }
 
   public void refinement() {

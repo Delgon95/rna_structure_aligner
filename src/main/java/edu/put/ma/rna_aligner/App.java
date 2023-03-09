@@ -77,16 +77,17 @@ public class App {
 
     final boolean isSequenceDependent =
         StringUtils.equalsIgnoreCase(parsed_args.getOptionValue("mode", "seq-indep"), "seq-dep");
+    final boolean respectOrder = parsed_args.hasOption("respect-order");
 
     AlignerOutput output = null;
     if (StringUtils.equalsIgnoreCase(
             parsed_args.getOptionValue("method", "geometric"), "geometric")) {
       GeometricAligner aligner = new GeometricAligner(
-          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit);
+          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit, respectOrder);
       output = aligner.calculate();
     } else {
       GeneticAligner aligner = new GeneticAligner(
-          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit);
+          config, referenceStructure, targetStructure, isSequenceDependent, config.rmsdLimit, respectOrder);
       output = aligner.calculate();
     }
 
@@ -306,6 +307,14 @@ public class App {
             .withDescription("(optional) Generate initial population using first results obrained "
                 + "from the geometric algorithm.\n")
             .create());
+
+    options.addOption(
+        OptionBuilder.withLongOpt("respect-order")
+            .withDescription("(optional) The resulting alignemnt will respect nucleotide order "
+                + "in the structure. This might make shorter but more biologicaly accurate "
+                + "alignments.\n")
+            .create());
+
 
     options.addOption(
         OptionBuilder.withLongOpt("allow-incomplete")

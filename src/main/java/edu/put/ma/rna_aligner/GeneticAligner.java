@@ -33,10 +33,11 @@ public class GeneticAligner {
   private boolean isSequenceDependent;
   private double rmsdLimit;
   private boolean areSequencesSwapped = false;
+  private boolean respectOrder = false;
 
   GeneticAligner(final AlignerConfig _config, final ArrayList<Nucleotide> _referenceStructure,
       final ArrayList<Nucleotide> _targetStructure, final boolean _isSequenceDependent,
-      final double _rmsdLimit) {
+      final double _rmsdLimit, final boolean _respectOrder) {
     super();
     config = _config;
     
@@ -50,6 +51,7 @@ public class GeneticAligner {
     }
     
     isSequenceDependent = _isSequenceDependent;
+    respectOrder = _respectOrder;
     //if ((isSequenceDependent) && (referenceStructure.size() != targetStructure.size())) {
     //  isSequenceDependent = !isSequenceDependent;
     //}
@@ -89,7 +91,7 @@ public class GeneticAligner {
         // Create new completely random specimen.
         do {
           newSpecimen =
-              new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+              new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
           newSpecimen.initialize(rand.nextInt(100) + 1);
         } while (!(newSpecimen.getUsedNucleotidesNumber() > 1
             && Double.compare(newSpecimen.calculateRMSD(), rmsdLimit) <= 0));
@@ -152,7 +154,7 @@ public class GeneticAligner {
 
       conf_tmp.threads = config.threads;
       GeometricAligner aligner = new GeometricAligner(
-          conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit);
+          conf_tmp, referenceStructure, targetStructure, isSequenceDependent, rmsdLimit, respectOrder);
       ArrayList<Specimen> res = aligner.createPopulation(populationSize);
 
       // stopTime = (long) ((System.currentTimeMillis() + (1000 * config.returnTime * 0.2)));
@@ -188,13 +190,13 @@ public class GeneticAligner {
               spec = (Specimen) populationPool.get(i).clone();
             } else {
               // Geometric did not produce enough specimens. Select random one.
-              spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+              spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
               spec.initialize(rand.nextInt(85) + 5);
               spec.refinement();
               int count = 0;
               while (spec.getUsedNucleotidesNumber() <= 1 && count < 20) {
                 spec =
-                    new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+                    new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
                 spec.initialize(rand.nextInt(85) + 5);
                 spec.refinement();
               }
@@ -210,13 +212,13 @@ public class GeneticAligner {
             for (int i = 0; i < lacking; ++i) {
               Specimen spec;
               // Geometric did not produce enough specimens. Select random one.
-              spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+              spec = new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
               spec.initialize(rand.nextInt(85) + 5);
               spec.refinement();
               int count = 0;
               while (spec.getUsedNucleotidesNumber() <= 1 && count < 20) {
                 spec =
-                    new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+                    new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
                 spec.initialize(rand.nextInt(85) + 5);
                 spec.refinement();
               }
@@ -234,7 +236,7 @@ public class GeneticAligner {
               break;
             }
             final Specimen spec =
-                new Specimen(config, referenceStructure, targetStructure, isSequenceDependent);
+                new Specimen(config, referenceStructure, targetStructure, isSequenceDependent, respectOrder);
             spec.initialize(rand.nextInt(85) + 5);
             spec.refinement();
             if (spec.getUsedNucleotidesNumber() > 1) {

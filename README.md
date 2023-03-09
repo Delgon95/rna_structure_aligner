@@ -70,6 +70,9 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
                                   Default: 200
  -r,--reference <reference.pdb>   Reference structure in .pdb/.cif format. Can force format with
                                   --input-format
+    --respect-order               (optional) The resulting alignemnt will respect nucleotide order
+                                  in the structure. This might make shorter but more biologicaly
+                                  accurate alignments.
     --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
                                   will not exceed. Must be a positive number.
                                   Default: 3.5

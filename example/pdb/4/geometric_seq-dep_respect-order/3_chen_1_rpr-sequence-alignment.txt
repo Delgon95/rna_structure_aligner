@@ -1,0 +1,7 @@
+REF:   CUCUGGAGAGAACCGUUUAAUCGGUCGCCGAAGGAGCAAGCUCUGCGGAAACGCAGAGUGAAACUCUCAGGCAAAAGGAC
+       ||||||||||||||||| |  ||||||||                                        |||||||||||
+MODEL: CUCUGGAGAGAACCGUU-A--CGGUCGCC----------------------------------------GGCAAAAGGAC
+
+REF:   AGAG
+       ||||
+MODEL: AGAG

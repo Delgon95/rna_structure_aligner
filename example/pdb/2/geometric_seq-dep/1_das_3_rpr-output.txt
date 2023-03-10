@@ -3,5 +3,5 @@ Maximal RMSD threshold: 3.50
 Residues number of reference structure: 46
 Residues number of model: 46
 Number of aligned nucleotides: 45
-RMSD score: 3.401
-Processing time [ms]: 2560
+RMSD score: 3.218
+Processing time [ms]: 3210

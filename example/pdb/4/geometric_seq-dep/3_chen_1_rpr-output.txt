@@ -4,4 +4,4 @@ Residues number of reference structure: 84
 Residues number of model: 84
 Number of aligned nucleotides: 42
 RMSD score: 3.418
-Processing time [ms]: 2411
+Processing time [ms]: 12713

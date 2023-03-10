@@ -1,0 +1,7 @@
+Aligning mode: sequence-dependent
+Maximal RMSD threshold: 3.50
+Residues number of reference structure: 126
+Residues number of model: 126
+Number of aligned nucleotides: 125
+RMSD score: 3.214
+Processing time [ms]: 31925

@@ -176,7 +176,10 @@ public class GeneticAligner {
     threads.parallel().forEach(index -> {
       // No more than X seconds.
 
-      while (!terminate && (System.currentTimeMillis() < stopTime)) {
+      while (!terminate && (System.currentTimeMillis() < stopTime)
+          // Try to stay if current best is below 10%.
+          || (bestAlignmentSize < Math.min(referenceStructure.size(), targetStructure.size()) * 0.1
+              && (System.currentTimeMillis() < globalStart + config.returnTime * 1000))) {
         ArrayList<Specimen> population = new ArrayList<Specimen>();
         
 
@@ -380,9 +383,6 @@ public class GeneticAligner {
           LOGGER.error(e.getMessage(), e);
         } finally {
           semaphore.release();
-        }
-        if (stopTime - System.currentTimeMillis() < 0 || terminate) {
-          break;
         }
       }
     });

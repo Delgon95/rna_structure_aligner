@@ -37,23 +37,25 @@ RNA Hugs is a command line application, which requires to be provided
 with:
 
 -   `--reference` and the path to reference PDB file.
--   `--target` and the path to target PDB file.
+-   `--model` and the path to model PDB file.
 
 
 ```
-java -jar target/rna-hugs-X.Y-jar-with-dependencies.jar --reference reference.pdb --target target.pdb --method genetic --rmsd 2
+java -jar target/rna-hugs-X.Y-jar-with-dependencies.jar --reference reference.pdb --model model.pdb --method genetic --rmsd 2
 
-usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
+usage: java -jar rna-hugs.jar -r <reference.pdb> -m <model.pdb> [OPTIONS]
     --allow-incomplete            (optional) Allow usage of incomplete atoms in coarse-grained
                                   structure creation. By default, all of the atoms specified in the
                                   code are required to include molecule in calculations.
     --geometric-pop               (optional) Generate initial population using first results
                                   obrained from the geometric algorithm.
     --input-format <format>       (optional) Format type of both input structures. Auto allows for
-                                  different formats between target and reference
+                                  different formats between model and reference
                                   Available: auto, pdb, cif
                                   Default: auto
- -m,--method <method>             (optional) Method used to align input structures.
+ -m,--model <model.pdb>           Model structure in .pdb/.cif format. Can force format with
+                                  --input-format
+    --method <method>             (optional) Method used to align input structures.
                                   Available: geometric, genetic
                                   Default: geometric
     --mode <aligning-mode>        (optional) Aligning mode used with each method. Can be either
@@ -61,7 +63,7 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
                                   Available: seq-indep, seq-dep
                                   Default: seq-indep
  -o,--output <path>               (optional) Output directory for all results and alignements.
-                                  Default: use directory of target structure
+                                  Default: use directory of model structure
     --pair-rmsd <rmsd>            (optional) Maximum RMSD (in Ångström) that cores with 2
                                   nucleotides will not exceed. Increase leads to wider and longer
                                   search. Must be lower or equal to triple-rmsd.
@@ -74,11 +76,9 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
                                   in the structure. This might make shorter but more biologicaly
                                   accurate alignments.
     --rmsd <rmsd>                 (optional) Maximum RMSD (in Ångström) that the aligned fragment
-                                  will not exceed. Must be a positive number.
+                                  will not exceed.
                                   Default: 3.5
-                                  Recommended: 0-20
- -t,--target <target.pdb>         Target structure in .pdb/.cif format. Can force format with
-                                  --input-format
+ -t,--target <model.pdb>          Same as --model (Deprecated)
     --threads <threads>           (optional) Number of threads used by algoritm. Easy way to speedup
                                   the processing.
                                   Default: all system threads
@@ -90,6 +90,8 @@ usage: java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]
                                   nucleotides will not exceed. Increase leads to wider and longer
                                   search. Must be higher or equal to pair-rmsd.
                                   Default: 1.0
+
+
 ```
 
 **Warning - currently included .pdb parser was written just for the sake of showing basic functionality and should not be used outside of this project!**
@@ -178,16 +180,16 @@ due to the nondeterministic nature of the metaheuristic algorithm and randomness
 
 Visualizations of example alignments were done using PyMOL.
 
-Examples show model structure superimposed over target structure. 
+Examples show model structure superimposed over reference structure. 
 Presented result use sequence independent mode of the geometric (GEOS) algorithm with a 3.5Å RMSD cutoff.
 
 Blue - Aligned fragment of the model structure.
 
 Red - Not aligned fragment of the model structure.
 
-Green - Target structure.
+Green - Reference structure.
 
-## Puzzle 01 - Das_3 model vs 3MEI (target) - Aligned 45/46
+## Puzzle 01 - Das_3 (model) vs 3MEI (reference) - Aligned 45/46
 ![](rnapuzzle_01_aligned_das3.png)
 
 <details>
@@ -259,7 +261,7 @@ B23 	<->	B23
 
 </details>
 
-## Puzzle 03 - Chen_1 model vs 3OWZ (target) - Aligned 53/84
+## Puzzle 03 - Chen_1 (model) vs 3OWZ (reference) - Aligned 53/84
 ![](rnapuzzle_03_aligned_das5.png)
 
 <details>
@@ -373,7 +375,7 @@ A84 	<->	-
 
 </details>
 
-## Puzzle 04 - Adamiak_4 model vs 3V7E (target) 97/126
+## Puzzle 04 - Adamiak_4 (model) vs 3V7E (reference) 97/126
 ![](rnapuzzle_04_aligned_adamiak4.png)
 
 <details>

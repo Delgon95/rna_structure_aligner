@@ -62,6 +62,7 @@ public class App {
       System.exit(2);
     }
 
+
     final File outputDirectory = getOutputDirectory(parsed_args);
 
     // Parse PDB and create default coarse-grained structures.
@@ -70,7 +71,7 @@ public class App {
         parsed_args.getOptionValue("reference"), parsed_args.getOptionValue("pop-size", "auto"),
         parsed_args.hasOption("allow-incomplete"));
     final ArrayList<Nucleotide> targetStructure = parser.StructureToCoarseGrained(
-        parsed_args.getOptionValue("target"), parsed_args.getOptionValue("pop-size", "auto"),
+        getModelArg(parsed_args) , parsed_args.getOptionValue("pop-size", "auto"),
         parsed_args.hasOption("allow-incomplete"));
 
     // Aligner function input: config, coarse-grained RNA structures.
@@ -92,21 +93,21 @@ public class App {
     }
 
     final String modelNameWithoutExtension =
-        FilenameUtils.removeExtension(FilenameUtils.getName(parsed_args.getOptionValue("target")));
+        FilenameUtils.removeExtension(FilenameUtils.getName(getModelArg(parsed_args)));
 
     final StringBuilder outputStringBuilder = new StringBuilder();
-    outputStringBuilder.append(String.format("Aligning mode: %s\n",
+    outputStringBuilder.append(String.format("Alignment mode: %s\n",
         ((isSequenceDependent) ? "sequence-dependent" : "sequence-independent")));
-    outputStringBuilder.append(String.format("Maximal RMSD threshold: %.2f\n", config.rmsdLimit));
+    outputStringBuilder.append(String.format("RMSD threshold [Å]: %.2f\n", config.rmsdLimit));
     outputStringBuilder.append(
-        String.format("Residues number of reference structure: %d\n", referenceStructure.size()));
+        String.format("Reference structure size [nts]: %d\n", referenceStructure.size()));
     outputStringBuilder.append(
-        String.format("Residues number of model: %d\n", targetStructure.size()));
+        String.format("Model structure size [nts]: %d\n", targetStructure.size()));
 
     if ((output != null) && (output.aligned > 0)) {
       outputStringBuilder.append(
-          String.format("Number of aligned nucleotides: %d\n", output.aligned));
-      outputStringBuilder.append(String.format("RMSD score: %.3f\n", output.rmsd));
+          String.format("Number of aligned residues: %d\n", output.aligned));
+      outputStringBuilder.append(String.format("RMSD of aligned fragments [Å]: %.3f\n", output.rmsd));
       outputStringBuilder.append(
           String.format("Processing time [ms]: %d\n", output.processingTime));
     } else {
@@ -143,7 +144,7 @@ public class App {
                          .toString(),
           getAlignment(referenceStructure, targetStructure, output));
 
-      ImmutableDefaultPdbModel model = getRotatedStructure(parsed_args.getOptionValue("target"),
+      ImmutableDefaultPdbModel model = getRotatedStructure(getModelArg(parsed_args),
           parsed_args.getOptionValue("pop-size", "auto"), output.superimposer);
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)
@@ -161,9 +162,13 @@ public class App {
     }
   }
 
+  private static final String getModelArg(final CommandLine args) {
+    return args.getOptionValue("model", args.getOptionValue("target"));
+  }
+
   private static final File getOutputDirectory(final CommandLine args) {
     final File path =
-        Paths.get(args.getOptionValue("output", args.getOptionValue("target"))).toFile();
+        Paths.get(args.getOptionValue("output", getModelArg(args))).toFile();
 
     if (path.exists()) {
       if (path.isDirectory()) {
@@ -198,16 +203,22 @@ public class App {
     options.addOption(
         OptionBuilder.withLongOpt("target")
             .withDescription(
-                "Target structure in .pdb/.cif format. Can force format with --input-format")
+                "Same as --model (Deprecated)")
             .hasArg()
-            .withArgName("target.pdb")
-            .isRequired()
+            .withArgName("model.pdb")
             .create('t'));
+    options.addOption(
+        OptionBuilder.withLongOpt("model")
+            .withDescription(
+                "Model structure in .pdb/.cif format. Can force format with --input-format")
+            .hasArg()
+            .withArgName("model.pdb")
+            .create('m'));
     options.addOption(
         OptionBuilder.withLongOpt("input-format")
             .withDescription(
                 "(optional) Format type of both input structures. Auto allows for different "
-                + "formats between target and reference\n"
+                + "formats between model and reference\n"
                 + "Available: auto, pdb, cif\n"
                 + "Default: auto")
             .hasArg()
@@ -217,7 +228,7 @@ public class App {
     options.addOption(
         OptionBuilder.withLongOpt("output")
             .withDescription("(optional) Output directory for all results and alignements.\n"
-                + "Default: use directory of target structure")
+                + "Default: use directory of model structure")
             .hasArg()
             .withArgName("path")
             .create('o'));
@@ -228,7 +239,7 @@ public class App {
                               + "Default: geometric")
                           .hasArg()
                           .withArgName("method")
-                          .create('m'));
+                          .create());
 
     options.addOption(
         OptionBuilder.withLongOpt("mode")
@@ -332,7 +343,14 @@ public class App {
     } catch (ParseException e) {
       LOGGER.error(e.getMessage());
       formatter.printHelp(100,
-          "java -jar rna-hugs.jar -r <reference.pdb> -t <target.pdb> [OPTIONS]", "", options, "");
+          "java -jar rna-hugs.jar -r <reference.pdb> -m <model.pdb> [OPTIONS]", "", options, "");
+      System.exit(1);
+    }
+
+    if (! cmd.hasOption("model") && ! cmd.hasOption("target")) {
+      LOGGER.error("Model structure is required");
+      formatter.printHelp(100,
+          "java -jar rna-hugs.jar -r <reference.pdb> -m <model.pdb> [OPTIONS]", "", options, "");
       System.exit(1);
     }
 

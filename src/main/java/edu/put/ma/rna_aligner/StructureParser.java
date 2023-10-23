@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.poznan.put.pdb.PdbAtomLine;
+import pl.poznan.put.pdb.analysis.MoleculeType;
 import pl.poznan.put.pdb.analysis.CifModel;
 import pl.poznan.put.pdb.analysis.CifParser;
 import pl.poznan.put.pdb.analysis.PdbModel;
@@ -47,28 +48,28 @@ public class StructureParser {
       entry("6NW", "A"), entry("F3N", "A"), entry("N79", "A"), entry("RIA", "A"), entry("V3L", "A"),
       entry("ZAD", "A"), entry("31H", "A"), entry("31M", "A"), entry("7AT", "A"), entry("O2Z", "A"),
       entry("SRA", "A"), entry("00A", "A"), entry("45A", "A"), entry("8AN", "A"), entry("LCA", "A"),
-      entry("P5P", "A"), entry("PPU", "A"), entry("PR5", "A"), entry("PU", "A"), entry("T6A", "A"),
+      entry("P5P", "A"), entry("PPU", "A"), entry("PR5", "A"), entry("PU",  "A"), entry("T6A", "A"),
       entry("TBN", "A"), entry("TXD", "A"), entry("TXP", "A"), entry("12A", "A"), entry("1MA", "A"),
       entry("5FA", "A"), entry("A6G", "G"), entry("E6G", "G"), entry("E7G", "G"), entry("EQ4", "G"),
-      entry("IG", "G"), entry("IMP", "G"), entry("M2G", "G"), entry("MGT", "G"), entry("MGV", "G"),
-      entry("MHG", "G"), entry("QUO", "G"), entry("YG", "G"), entry("YYG", "G"), entry("23G", "G"),
+      entry("IG",  "G"), entry("IMP", "G"), entry("M2G", "G"), entry("MGT", "G"), entry("MGV", "G"),
+      entry("MHG", "G"), entry("QUO", "G"), entry("YG",  "G"), entry("YYG", "G"), entry("23G", "G"),
       entry("2EG", "G"), entry("2MG", "G"), entry("2SG", "G"), entry("B8K", "G"), entry("B8W", "G"),
       entry("B9B", "G"), entry("BGH", "G"), entry("N6G", "G"), entry("RFJ", "G"), entry("ZGU", "G"),
       entry("7MG", "G"), entry("CG1", "G"), entry("G1G", "G"), entry("G25", "G"), entry("G2L", "G"),
       entry("G46", "G"), entry("G48", "G"), entry("G7M", "G"), entry("GAO", "G"), entry("GDO", "G"),
       entry("GDP", "G"), entry("GH3", "G"), entry("GNG", "G"), entry("GOM", "G"), entry("GRB", "G"),
       entry("GTP", "G"), entry("KAG", "G"), entry("KAK", "G"), entry("O2G", "G"), entry("OMG", "G"),
-      entry("8AA", "G"), entry("8OS", "G"), entry("LG", "G"), entry("PGP", "G"), entry("P7G", "G"),
-      entry("TPG", "G"), entry("TG", "G"), entry("XTS", "G"), entry("102", "G"), entry("18M", "G"),
-      entry("1MG", "G"), entry("A5M", "C"), entry("A6C", "C"), entry("E3C", "C"), entry("IC", "C"),
+      entry("8AA", "G"), entry("8OS", "G"), entry("LG",  "G"), entry("PGP", "G"), entry("P7G", "G"),
+      entry("TPG", "G"), entry("TG",  "G"), entry("XTS", "G"), entry("102", "G"), entry("18M", "G"),
+      entry("1MG", "G"), entry("A5M", "C"), entry("A6C", "C"), entry("E3C", "C"), entry("IC",  "C"),
       entry("M4C", "C"), entry("M5M", "C"), entry("6OO", "C"), entry("B8Q", "C"), entry("B8T", "C"),
       entry("B9H", "C"), entry("JMH", "C"), entry("N5M", "C"), entry("RPC", "C"), entry("RSP", "C"),
       entry("RSQ", "C"), entry("ZBC", "C"), entry("ZCY", "C"), entry("73W", "C"), entry("C25", "C"),
       entry("C2L", "C"), entry("C31", "C"), entry("C43", "C"), entry("C5L", "C"), entry("CBV", "C"),
-      entry("CCC", "C"), entry("CH", "C"), entry("CSF", "C"), entry("OMC", "C"), entry("S4C", "C"),
-      entry("4OC", "C"), entry("LC", "C"), entry("LHH", "C"), entry("LV2", "C"), entry("PMT", "C"),
-      entry("TC", "C"), entry("10C", "C"), entry("1SC", "C"), entry("5HM", "C"), entry("5IC", "C"),
-      entry("5MC", "C"), entry("A6U", "U"), entry("IU", "U"), entry("I4U", "U"), entry("MEP", "U"),
+      entry("CCC", "C"), entry("CH",  "C"), entry("CSF", "C"), entry("OMC", "C"), entry("S4C", "C"),
+      entry("4OC", "C"), entry("LC",  "C"), entry("LHH", "C"), entry("LV2", "C"), entry("PMT", "C"),
+      entry("TC",  "C"), entry("10C", "C"), entry("1SC", "C"), entry("5HM", "C"), entry("5IC", "C"),
+      entry("5MC", "C"), entry("A6U", "U"), entry("IU",  "U"), entry("I4U", "U"), entry("MEP", "U"),
       entry("MNU", "U"), entry("U25", "U"), entry("U2L", "U"), entry("U2P", "U"), entry("U31", "U"),
       entry("U34", "U"), entry("U36", "U"), entry("U37", "U"), entry("U8U", "U"), entry("UAR", "U"),
       entry("UBB", "U"), entry("UBD", "U"), entry("UD5", "U"), entry("UPV", "U"), entry("UR3", "U"),
@@ -105,11 +106,10 @@ public class StructureParser {
       final PdbParser pdbParser = new PdbParser(false);
       final List<PdbModel> pdbModels = (isPdb) ? pdbParser.parse(structureContent) : null;
       final List<CifModel> cifModels = (!isPdb) ? CifParser.parse(structureContent) : null;
-      // Only consider first model
-      final int size = 1;
 
-      for (int i = 0; i < size; ++i) {
-        final PdbModel model = (isPdb) ? pdbModels.get(i) : cifModels.get(i);
+      // Only consider first model
+      //for (int i = model_num - 1; i < size; ++i) {
+        final PdbModel model = (isPdb) ? pdbModels.get(0).filteredNewInstance(MoleculeType.RNA) : cifModels.get(0).filteredNewInstance(MoleculeType.RNA);
         double bsgcCounter = 0;
         double rbgcCounter = 0;
         double restCounter = 0;
@@ -265,7 +265,7 @@ public class StructureParser {
             LOGGER.warn(String.format("Incomplete residue %s.", currentAtomKey));
           }
         }
-      }
+      //} // for
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -305,6 +305,25 @@ public class StructureParser {
       return "G";
     } else if (StringUtils.equalsIgnoreCase("CYT", resName)) {
       return "C";
+    } else if (StringUtils.equalsIgnoreCase(resName, "U")) {
+      return "U";
+    } else if (StringUtils.equalsIgnoreCase(resName, "C")) {
+      return "C";
+    } else if (StringUtils.equalsIgnoreCase(resName, "G")) {
+      return "G";
+    } else if (StringUtils.equalsIgnoreCase(resName, "A")) {
+      return "A";
+    } else if (modified_3to1.containsKey(resName.toUpperCase())) {
+      return modified_3to1.get(resName.toUpperCase());
+    } else if (StringUtils.equalsIgnoreCase(resName, "DT")) {
+      // Convert DT into U (as it should work be similar)
+      return "U";
+    } else if (StringUtils.equalsIgnoreCase(resName, "DC")) {
+      return "C";
+    } else if (StringUtils.equalsIgnoreCase(resName, "DG")) {
+      return "G";
+    } else if (StringUtils.equalsIgnoreCase(resName, "DA")) {
+      return "A";
     } else if (StringUtils.endsWithIgnoreCase(resName, "U")) {
       return "U";
     } else if (StringUtils.endsWithIgnoreCase(resName, "C")) {
@@ -313,8 +332,6 @@ public class StructureParser {
       return "G";
     } else if (StringUtils.endsWithIgnoreCase(resName, "A")) {
       return "A";
-    } else if (modified_3to1.containsKey(resName.toUpperCase())) {
-      return modified_3to1.get(resName.toUpperCase());
     }
     return "";
     // throw new IllegalArgumentException(String.format("Only ADE, GUA, CYT, URI|URA are supported.

@@ -102,7 +102,7 @@ public class App {
     outputStringBuilder.append(
         String.format("Reference structure size [nts]: %d\n", referenceStructure.size()));
     outputStringBuilder.append(
-        String.format("Model structure size [nts]: %d\n", targetStructure.size()));
+        String.format("Model size [nts]: %d\n", targetStructure.size()));
 
     if ((output != null) && (output.aligned > 0)) {
       outputStringBuilder.append(

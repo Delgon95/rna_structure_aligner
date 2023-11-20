@@ -279,6 +279,11 @@ public class StructureParser {
       e.printStackTrace();
     }
 
+    if (result.size() == 0) {
+        LOGGER.warn(
+            "Parsed structure without any atoms to analyze.");
+    }
+
     return result;
   }
 

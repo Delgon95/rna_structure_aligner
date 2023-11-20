@@ -266,16 +266,17 @@ public class StructureParser {
           }
         }
       //} // for
-    } catch (IOException e) {
+      // Only if no exception was thrown
+      // It is possible that auto detect did not work properly.
+      // We can try and run the parser again with different parse type.
+      if (result.size() == 0 && inputType == "auto") {
+        LOGGER.warn(
+            "Parsed structure without any atoms to analyze. Trying another type pdb/cif instead.");
+        return (isPdb) ? StructureToCoarseGrained(filename, "cif", allowIncomplete)
+                       : StructureToCoarseGrained(filename, "pdb", allowIncomplete);
+      }
+    } catch (IOException|IllegalArgumentException e) {
       e.printStackTrace();
-    }
-    // It is possible that auto detect did not work properly.
-    // We can try and run the parser again with different parse type.
-    if (result.size() == 0 && inputType == "auto") {
-      LOGGER.warn(
-          "Parsed structure without any atoms to analyze. Trying another type pdb/cif instead.");
-      return (isPdb) ? StructureToCoarseGrained(filename, "cif", allowIncomplete)
-                     : StructureToCoarseGrained(filename, "pdb", allowIncomplete);
     }
 
     return result;

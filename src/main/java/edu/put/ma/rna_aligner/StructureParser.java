@@ -119,6 +119,8 @@ public class StructureParser {
 
         String currentResidueName = null;
         String currentAtomKey = null;
+        String currentChain = null;
+        String currentResidueNumber = null;
 
         for (final PdbAtomLine atom : model.atoms()) {
           final String atomName = atom.atomName();
@@ -126,6 +128,12 @@ public class StructureParser {
               ? new StringBuilder(atom.chainIdentifier()).append(atom.residueNumber()).toString()
               : new StringBuilder(atom.chainIdentifier())
                     .append(atom.residueNumber())
+                    .append(atom.insertionCode())
+                    .toString();
+          final String chain = new StringBuilder(atom.chainIdentifier()).toString();
+          final String residueNumber = (StringUtils.isEmpty(atom.insertionCode()))
+              ? String.valueOf(atom.residueNumber())
+              : new StringBuilder(String.valueOf(atom.residueNumber()))
                     .append(atom.insertionCode())
                     .toString();
 
@@ -140,6 +148,12 @@ public class StructureParser {
           }
           if (StringUtils.isBlank(currentResidueName)) {
             currentResidueName = residueName;
+          }
+          if (StringUtils.isBlank(currentChain)) {
+            currentChain = chain;
+          }
+          if (StringUtils.isBlank(currentResidueNumber)) {
+            currentResidueNumber = residueNumber;
           }
 
           if (!StringUtils.equals(currentAtomKey, key)) {
@@ -165,12 +179,12 @@ public class StructureParser {
                 && (bsgcCounter >= 1 )) {
               ArrayList<Coordinates> grained =
                   new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-              result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
+              result.add(new Nucleotide(grained, currentResidueName, currentAtomKey, currentChain, currentResidueNumber));
             } else {
               if (allowIncomplete && bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
                 final ArrayList<Coordinates> grained =
                     new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-                result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
+                result.add(new Nucleotide(grained, currentResidueName, currentAtomKey, currentChain, currentResidueNumber));
                 LOGGER.warn(String.format("%s %s.", restCounter, rest_atoms.size()));
                 LOGGER.warn(String.format("%s %s.", rbgcCounter, ryboze_atoms.size()));
                 LOGGER.warn(
@@ -181,6 +195,8 @@ public class StructureParser {
             // Reset
             currentAtomKey = key;
             currentResidueName = residueName;
+            currentChain = chain;
+            currentResidueNumber = residueNumber;
             bsgcAtom = new Coordinates();
             rbgcAtom = new Coordinates();
             restAtom = new Coordinates();
@@ -248,16 +264,16 @@ public class StructureParser {
         }
 //            if ((restCounter == rest_atoms.size()) && (rbgcCounter == ryboze_atoms.size())
 //                && (bsgcCounter == getBaseAtomsCount(currentResidueName))) {
-            if ((restCounter >= 1) && (rbgcCounter >= 1)
-                && (bsgcCounter >= 1 )) {
+        if ((restCounter >= 1) && (rbgcCounter >= 1)
+             && (bsgcCounter >= 1 )) {
           final ArrayList<Coordinates> grained =
               new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-          result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
+          result.add(new Nucleotide(grained, currentResidueName, currentAtomKey, currentChain, currentResidueNumber));
         } else {
           if (allowIncomplete && bsgcCounter >= 1. && rbgcCounter >= 1. && restCounter >= 1.) {
             final ArrayList<Coordinates> grained =
                 new ArrayList<Coordinates>(Arrays.asList(bsgcAtom, rbgcAtom, restAtom));
-            result.add(new Nucleotide(grained, currentResidueName, currentAtomKey));
+            result.add(new Nucleotide(grained, currentResidueName, currentAtomKey, currentChain, currentResidueNumber));
             LOGGER.warn(String.format("%s %s.", restCounter, rest_atoms.size()));
             LOGGER.warn(String.format("%s %s.", rbgcCounter, ryboze_atoms.size()));
             LOGGER.warn(

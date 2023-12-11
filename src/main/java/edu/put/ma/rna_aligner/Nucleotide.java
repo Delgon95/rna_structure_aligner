@@ -8,15 +8,21 @@ public class Nucleotide {
 
   private String key;
 
+  private String chain;
+  private String number;
+
   public Nucleotide() {
     representatives = new ArrayList<Coordinates>();
   }
 
   public Nucleotide(
-      final ArrayList<Coordinates> _representatives, final String code, final String key) {
+      final ArrayList<Coordinates> _representatives, final String code, final String key,
+      final String chain, final String number) {
     representatives = _representatives;
     this.code = code;
     this.key = key;
+    this.chain = chain;
+    this.number = number;
   }
 
   @Override
@@ -73,5 +79,17 @@ public class Nucleotide {
 
   public String toString() {
     return key;
+  }
+
+  public final String getChain() {
+    return chain;
+  }
+
+  public final String getNumber() {
+    return number;
+  }
+
+  public final String getDelimitedChainNumber(final String delimiter) {
+        return String.format("%s%s%s", this.chain, delimiter, this.number);
   }
 }

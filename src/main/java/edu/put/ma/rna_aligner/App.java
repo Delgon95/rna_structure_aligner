@@ -127,8 +127,8 @@ public class App {
       for (int i = 0; i < output.referenceIndexes.size(); ++i) {
         final int targetIndex = output.targetMapping.get(i).intValue();
         alignedResiduesMappingStringBuilder.append(String.format("%s\t<->\t%s\n",
-            referenceStructure.get(output.referenceIndexes.get(i)).getKey(),
-            (targetIndex > -1) ? targetStructure.get(targetIndex).getKey() : "-"));
+            referenceStructure.get(output.referenceIndexes.get(i)).getDelimitedChainNumber(":"),
+            (targetIndex > -1) ? targetStructure.get(targetIndex).getDelimitedChainNumber(":") : "-"));
       }
       saveDataToFile(new StringBuilder(outputDirectory.getAbsolutePath())
                          .append(File.separator)

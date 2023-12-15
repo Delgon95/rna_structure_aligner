@@ -102,14 +102,30 @@ public class App {
     outputStringBuilder.append(
         String.format("Reference structure size [nts]: %d\n", referenceStructure.size()));
     outputStringBuilder.append(
-        String.format("Model size [nts]: %d\n", targetStructure.size()));
+        String.format("Aligned structure size [nts]: %d\n", targetStructure.size()));
+
 
     if ((output != null) && (output.aligned > 0)) {
       outputStringBuilder.append(
           String.format("Number of aligned residues: %d\n", output.aligned));
+      float min_size = Math.min(referenceStructure.size(), targetStructure.size());
+      int percentage = 0;
+      if (min_size > 0) {
+        percentage = Math.round(Float.valueOf(output.aligned) / min_size * 100.0f);
+      }
+      // Make sure rounding will not show 0 if anything is aligned.
+      if (percentage == 0 && output.aligned > 0) {
+        percentage = 1;
+      }
+      // Make sure rounding will not show 100 if not everything is aligned.
+      if (percentage == 100 && output.aligned != min_size) {
+        percentage = 99;
+      }
+      outputStringBuilder.append(
+          String.format("Percentage of aligned residues [%%]: %d\n", percentage));
       outputStringBuilder.append(String.format("RMSD of aligned fragments [Å]: %.3f\n", output.rmsd));
       outputStringBuilder.append(
-          String.format("Processing time [ms]: %d\n", output.processingTime));
+          String.format("Processing time [sec]: %d.%03d\n", output.processingTime / 1000, output.processingTime % 1000));
     } else {
       outputStringBuilder.append(String.format("Alignment is not found.\n"));
     }

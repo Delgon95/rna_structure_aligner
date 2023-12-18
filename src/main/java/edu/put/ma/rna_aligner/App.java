@@ -110,16 +110,9 @@ public class App {
           String.format("Number of aligned residues: %d\n", output.aligned));
       float min_size = Math.min(referenceStructure.size(), targetStructure.size());
       int percentage = 0;
+      // Should always happen.
       if (min_size > 0) {
-        percentage = Math.round(Float.valueOf(output.aligned) / min_size * 100.0f);
-      }
-      // Make sure rounding will not show 0 if anything is aligned.
-      if (percentage == 0 && output.aligned > 0) {
-        percentage = 1;
-      }
-      // Make sure rounding will not show 100 if not everything is aligned.
-      if (percentage == 100 && output.aligned != min_size) {
-        percentage = 99;
+        percentage = new Double(Math.floor(Float.valueOf(output.aligned) / min_size * 100.0f)).intValue();
       }
       outputStringBuilder.append(
           String.format("Percentage of aligned residues [%%]: %d\n", percentage));
